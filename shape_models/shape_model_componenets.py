@@ -8,7 +8,7 @@ import numpy as np
 from astropy.utils.misc import NumpyRNGContext
 from warnings import warn
 from scipy.stats import norm, lognorm, truncnorm
-from halotools.utils import normalized_vectors
+from halotools.utils import normalized_vectors, elementwise_dot
 
 
 __all__ = ('PS08Shapes',)
@@ -343,15 +343,26 @@ class ProjectedShape(object):
             msg = ('los dimension not recognized')
             raise ValueError(msg)
 
-        minor_axis = np.vstack((table['galaxy_axisC_x'], table['galaxy_axisC_y'], table['galaxy_axisC_z'])).T
-        inter_axis = np.vstack((table['galaxy_axisB_x'], table['galaxy_axisB_y'], table['galaxy_axisB_z'])).T
-        major_axis = np.vstack((table['galaxy_axisA_x'], table['galaxy_axisA_y'], table['galaxy_axisA_z'])).T
+        minor_axis = normalized_vectors(np.vstack((table['galaxy_axisC_x'], table['galaxy_axisC_y'], table['galaxy_axisC_z'])).T)
+        inter_axis = normalized_vectors(np.vstack((table['galaxy_axisB_x'], table['galaxy_axisB_y'], table['galaxy_axisB_z'])).T)
+        major_axis = normalized_vectors(np.vstack((table['galaxy_axisA_x'], table['galaxy_axisA_y'], table['galaxy_axisA_z'])).T)
 
         # inclination angle
-        theta = np.arccos(np.dot(normalized_vectors(minor_axis), u_los))
+        theta = np.arccos(np.dot(minor_axis, u_los))
 
         # major-axis orientation angle
-        phi = np.arccos(np.dot(normalized_vectors(major_axis), u_los))
+        u_n = normalized_vectors(np.cross(minor_axis, u_los))
+
+        dot = elementwise_dot(major_axis, u_n)
+
+        # protect against tiny numerical excesses beyond the range [-1 ,1]
+        tol=1e-3
+        mask1 = (dot > 1) & (dot < 1 + tol)
+        dot = np.where(mask1, 1., dot)
+        mask2 = (dot < -1) & (dot > -1 - tol)
+        dot = np.where(mask2, -1., dot)
+
+        phi = np.arccos(dot) - np.pi/2.0  # Binney 1985 footnote
 
         b_to_a = table['galaxy_b_to_a']
         c_to_a = table['galaxy_c_to_a']
