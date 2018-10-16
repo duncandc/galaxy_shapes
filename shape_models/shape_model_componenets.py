@@ -7,7 +7,8 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import numpy as np
 from astropy.utils.misc import NumpyRNGContext
 from warnings import warn
-from scipy.stats import norm, lognorm
+from scipy.stats import norm, lognorm, truncnorm
+from halotools.utils import normalized_vectors
 
 
 __all__ = ('PS08Shapes',)
@@ -44,13 +45,20 @@ class PS08Shapes(object):
 
     def set_params(self, **kwargs):
         """
-        table 2, Padilla + (2008)
         """
 
+        if 'galaxy_type' in kwargs.keys():
+            galaxy_type = kwargs['galaxy_type']
+        else:
+            galaxy_type = 'elliptical'
+
+        if 'sample' in kwargs.keys():
+            sample = kwargs['sample']
+        else:
+            sample = 'all'
+
         if galaxy_type == 'elliptical':
-            """
-            parameters from table 2 in PS08
-            """
+            # parameters from table 2 in PS08
             if sample=='luminosity_sample_1':
                 param_dict = ({'shape_mu_'+self.gal_type: -2.85,
                                'shape_sigma_'+self.gal_type: 1.15,
@@ -76,9 +84,7 @@ class PS08Shapes(object):
                                'shape_sigma_'+self.gal_type: 1.4,
                                'shape_gamma_'+self.gal_type: 0.57,
                                'shape_sigma_gamma_'+self.gal_type: 0.21})
-                        """
-            parameters from table 6 in PS08
-            """
+            # parameters from table 6 in PS08
             elif sample=='size_sample_1a':
                 param_dict = ({'shape_mu_'+self.gal_type: -3.18,
                                'shape_sigma_'+self.gal_type: 0.75,
@@ -94,9 +100,7 @@ class PS08Shapes(object):
                                'shape_sigma_'+self.gal_type: 1.6,
                                'shape_gamma_'+self.gal_type: 0.19,
                                'shape_sigma_gamma_'+self.gal_type: 0.05})
-            """
-            parameters from table 7 in PS08
-            """
+            # parameters from table 7 in PS08
             elif sample=='size_sample_2a':
                 param_dict = ({'shape_mu_'+self.gal_type: -2.52,
                                'shape_sigma_'+self.gal_type: 2.7,
@@ -116,9 +120,7 @@ class PS08Shapes(object):
                 msg = ('PS08 parameter set not recognized.')
                 raise ValueError(msg)
         elif galaxy_type == 'spiral':
-            """
-            parameters from table 4 in PS08
-            """
+            # parameters from table 4 in PS08
             if sample=='luminosity_sample_1':
                 param_dict = ({'shape_E0_'+self.gal_type:0.20,
                                'shape_mu_'+self.gal_type: -2.13,
@@ -149,9 +151,7 @@ class PS08Shapes(object):
                                'shape_sigma_'+self.gal_type: 0.79,
                                'shape_gamma_'+self.gal_type: 0.79,
                                'shape_sigma_gamma_'+self.gal_type: 0.050})
-            """
-            parameters from table 5 in PS08
-            """
+            # parameters from table 5 in PS08
             elif sample=='color_sample_1':
                 param_dict = ({'shape_E0_'+self.gal_type:0.4,
                                'shape_mu_'+self.gal_type: -2.13,
@@ -176,9 +176,7 @@ class PS08Shapes(object):
                                'shape_sigma_'+self.gal_type: 0.73,
                                'shape_gamma_'+self.gal_type: 0.79,
                                'shape_sigma_gamma_'+self.gal_type: 0.050})
-            """
-            parameters from table 6 in PS08
-            """
+            # parameters from table 6 in PS08
             elif sample=='size_sample_1a':
                 param_dict = ({'shape_E0_'+self.gal_type:0.6,
                                'shape_mu_'+self.gal_type: -2.29,
@@ -197,9 +195,7 @@ class PS08Shapes(object):
                                'shape_sigma_'+self.gal_type: 1.54,
                                'shape_gamma_'+self.gal_type: 0.89,
                                'shape_sigma_gamma_'+self.gal_type: 0.01})
-            """
-            parameters from table 7 in PS08
-            """
+            # parameters from table 7 in PS08
             elif sample=='size_sample_2a':
                 param_dict = ({'shape_E0_'+self.gal_type:1.9,
                                'shape_mu_'+self.gal_type: -3.17,
@@ -250,7 +246,7 @@ class PS08Shapes(object):
         mu = self.param_dict['shape_gamma_'+self.gal_type]
         sigma = self.param_dict['shape_sigma_gamma_'+self.gal_type]
 
-        p = norm.pdf(x, loc=mu, scale=sigma)
+        p = truncnorm.pdf(x, loc=mu, scale=sigma, a=0.0, b=1.0)
         return p
 
 
@@ -265,9 +261,12 @@ class PS08Shapes(object):
         mu = self.param_dict['shape_mu_'+self.gal_type]
         sigma = self.param_dict['shape_sigma_'+self.gal_type]
 
-        log_epsilon = norm.rvs(loc=mu, scale=sigma, size=N)
+        myclip_a = -1.0*np.inf
+        myclip_b = 0.0
+        a, b = (myclip_a - mu) / sigma, (myclip_b - mu) / sigma
 
-        epsilon = 10.0**log_epsilon
+        log_epsilon = truncnorm.rvs(loc=mu, scale=sigma, size=N, a=a, b=b)
+        epsilon = np.exp(log_epsilon)
 
         b_to_a = 1.0 - epsilon
 
@@ -286,7 +285,11 @@ class PS08Shapes(object):
         mu = self.param_dict['shape_gamma_'+self.gal_type]
         sigma = self.param_dict['shape_sigma_gamma_'+self.gal_type]
 
-        x = norm.rvs(loc=mu, scale=sigma, size=N)
+        myclip_a = 0
+        myclip_b = 1.0
+        a, b = (myclip_a - mu) / sigma, (myclip_b - mu) / sigma
+
+        x = truncnorm.rvs(loc=mu, scale=sigma, size=N, a=a, b=b)
 
         c_to_b = 1.0 - x
         b_to_a = np.array(table['galaxy_b_to_a'])*1.0
@@ -296,12 +299,12 @@ class PS08Shapes(object):
         table['galaxy_c_to_a'][mask] = c_to_a[mask]
 
 
-def ProjectedShape(object):
+class ProjectedShape(object):
     r"""
     model for projected galaxy shapes
     """
 
-    def __init__(self, gal_type, los_dimension='z', **kwargs):
+    def __init__(self, gal_type, **kwargs):
         r"""
         Parameters
         ----------
@@ -311,16 +314,18 @@ def ProjectedShape(object):
         """
 
         self.gal_type = gal_type
-        self.los_dimension = los_dimension
+        self.los_dimension = 'z'
         self._mock_generation_calling_sequence = (['assign_projected_b_to_a'])
 
         self._galprop_dtypes_to_allocate = np.dtype(
-            [(str('galaxy_projected_b_to_a'), 'f4')])
+            [(str('galaxy_projected_b_to_a'), 'f4'),
+             (str('galaxy_theta'), 'f4'),
+             (str('galaxy_phi'), 'f4')])
 
         self.list_of_haloprops_needed = []
 
         self._methods_to_inherit = ([])
-        self.set_params(**kwargs)
+        #self.set_params(**kwargs)
 
 
     def assign_projected_b_to_a(self, **kwargs):
@@ -338,25 +343,30 @@ def ProjectedShape(object):
             msg = ('los dimension not recognized')
             raise ValueError(msg)
 
-        minor_axis = np.vstack((table['galaxy_axisC_x'], table['galaxy_axisC_y'], table['galaxy_axisC_x'])).T
-        inter_axis = np.vstack((table['galaxy_axisB_x'], table['galaxy_axisB_y'], table['galaxy_axisB_x'])).T
-        major_axis = np.vstack((table['galaxy_axisA_x'], table['galaxy_axisA_y'], table['galaxy_axisA_x'])).T
+        minor_axis = np.vstack((table['galaxy_axisC_x'], table['galaxy_axisC_y'], table['galaxy_axisC_z'])).T
+        inter_axis = np.vstack((table['galaxy_axisB_x'], table['galaxy_axisB_y'], table['galaxy_axisB_z'])).T
+        major_axis = np.vstack((table['galaxy_axisA_x'], table['galaxy_axisA_y'], table['galaxy_axisA_z'])).T
 
         # inclination angle
-        theta = np.arccos(np.dot(u_los, normalized_vectors(minor_axis)))
+        theta = np.arccos(np.dot(normalized_vectors(minor_axis), u_los))
 
         # major-axis orientation angle
-        phi = np.arccos(np.dot(u_los, normalized_vectors(major_axis)))
+        phi = np.arccos(np.dot(normalized_vectors(major_axis), u_los))
 
         b_to_a = table['galaxy_b_to_a']
         c_to_a = table['galaxy_c_to_a']
 
-        proj_b_to_a = projected_b_to_a(b_to_a, c_to_a, theta, phi)
+        proj_b_to_a = self.projected_b_to_a(b_to_a, c_to_a, theta, phi)
 
-        table['galaxy_projected_b_to_a'] = proj_b_to_a
+        mask = (table['gal_type'] == self.gal_type)
+        table['galaxy_projected_b_to_a'][mask] = proj_b_to_a[mask]
+
+        table['galaxy_theta'][mask] = theta[mask]
+
+        table['galaxy_phi'][mask] = phi[mask]
 
 
-    def projected_b_to_a(b_to_a, c_to_a, theta, phi):
+    def projected_b_to_a(self, b_to_a, c_to_a, theta, phi):
         r"""
         Calulate the projected minor to major semi-axis lengths ratios
         for the 2D projectyion of an 3D ellipsodial distribution.
