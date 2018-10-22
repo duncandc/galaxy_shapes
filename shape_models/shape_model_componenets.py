@@ -9,6 +9,7 @@ from astropy.utils.misc import NumpyRNGContext
 from warnings import warn
 from scipy.stats import norm, lognorm, truncnorm
 from halotools.utils import normalized_vectors, elementwise_dot
+from rotations.vector_utilities import angles_between_list_of_vectors
 
 
 __all__ = ('PS08Shapes',)
@@ -333,6 +334,8 @@ class ProjectedShape(object):
         """
         table = kwargs['table']
 
+        N = len(table)
+
         if self.los_dimension == 'x':
             u_los = np.array([1.0, 0.0, 0.0])
         elif self.los_dimension == 'y':
@@ -343,26 +346,22 @@ class ProjectedShape(object):
             msg = ('los dimension not recognized')
             raise ValueError(msg)
 
-        minor_axis = normalized_vectors(np.vstack((table['galaxy_axisC_x'], table['galaxy_axisC_y'], table['galaxy_axisC_z'])).T)
-        inter_axis = normalized_vectors(np.vstack((table['galaxy_axisB_x'], table['galaxy_axisB_y'], table['galaxy_axisB_z'])).T)
-        major_axis = normalized_vectors(np.vstack((table['galaxy_axisA_x'], table['galaxy_axisA_y'], table['galaxy_axisA_z'])).T)
+        minor_axis = normalized_vectors(np.vstack((table['galaxy_axisC_x'],
+                                                   table['galaxy_axisC_y'], 
+                                                   table['galaxy_axisC_z'])).T)
+        inter_axis = normalized_vectors(np.vstack((table['galaxy_axisB_x'],
+                                                   table['galaxy_axisB_y'],
+                                                   table['galaxy_axisB_z'])).T)
+        major_axis = normalized_vectors(np.vstack((table['galaxy_axisA_x'],
+                                                   table['galaxy_axisA_y'],
+                                                   table['galaxy_axisA_z'])).T)
 
         # inclination angle
-        theta = np.arccos(np.dot(minor_axis, u_los))
+        theta = angles_between_list_of_vectors(minor_axis, u_los)
 
         # major-axis orientation angle
         u_n = normalized_vectors(np.cross(minor_axis, u_los))
-
-        dot = elementwise_dot(major_axis, u_n)
-
-        # protect against tiny numerical excesses beyond the range [-1 ,1]
-        tol=1e-3
-        mask1 = (dot > 1) & (dot < 1 + tol)
-        dot = np.where(mask1, 1., dot)
-        mask2 = (dot < -1) & (dot > -1 - tol)
-        dot = np.where(mask2, -1., dot)
-
-        phi = np.arccos(dot) - np.pi/2.0  # Binney 1985 footnote
+        phi = angles_between_list_of_vectors(major_axis, u_n, vn=minor_axis) + np.pi
 
         b_to_a = table['galaxy_b_to_a']
         c_to_a = table['galaxy_c_to_a']
@@ -401,6 +400,8 @@ class ProjectedShape(object):
         """
 
         g = c_to_a  # gamma
+        #c_to_b = c_to_a/b_to_a
+        #g = 1.0 - c_to_b
         e = 1.0 - b_to_a  # ellipticity
 
         V = (1 - e*(2 - e)*np.sin(phi)**2)*np.cos(theta)**2 + g**2*np.sin(theta)**2
@@ -409,6 +410,6 @@ class ProjectedShape(object):
 
         Z = 1-e*(2-e)*np.cos(phi)**2
 
-        projected_b_to_a = (V+Z-np.sqrt((V-Z)**2+W))/(V+Z+np.sqrt((V-Z)**2+W))
+        projected_b_to_a = np.sqrt((V+Z-np.sqrt((V-Z)**2+W))/(V+Z+np.sqrt((V-Z)**2+W)))
 
         return projected_b_to_a
