@@ -37,7 +37,8 @@ class PS08Shapes(object):
 
         self._galprop_dtypes_to_allocate = np.dtype(
             [(str('galaxy_b_to_a'), 'f4'),
-             (str('galaxy_c_to_a'), 'f4')])
+             (str('galaxy_c_to_a'), 'f4'),
+             (str('galaxy_c_to_b'), 'f4')])
 
         self.list_of_haloprops_needed = []
 
@@ -246,8 +247,21 @@ class PS08Shapes(object):
 
         mu = self.param_dict['shape_gamma_'+self.gal_type]
         sigma = self.param_dict['shape_sigma_gamma_'+self.gal_type]
+        
+        myclip_a = 0
+        myclip_b = 1.0
+        a, b = (myclip_a - mu) / sigma, (myclip_b - mu) / sigma
+        p = truncnorm.pdf(x, loc=mu, scale=sigma, a=a, b=b)
+        return p
 
-        p = truncnorm.pdf(x, loc=mu, scale=sigma, a=0.0, b=1.0)
+
+    def gamma_pdf(self, x):
+        """
+        gamma_prime = c/a
+        """
+
+        
+        p = (self.gamma_prime_pdf(1.0-x))*(self.epsilon_pdf(1.0-x))
         return p
 
 
@@ -289,15 +303,18 @@ class PS08Shapes(object):
         myclip_a = 0
         myclip_b = 1.0
         a, b = (myclip_a - mu) / sigma, (myclip_b - mu) / sigma
-
         x = truncnorm.rvs(loc=mu, scale=sigma, size=N, a=a, b=b)
-
+        
+        #gamma_prime = 1-c/b
+        #c/b = 1-gamma
         c_to_b = 1.0 - x
         b_to_a = np.array(table['galaxy_b_to_a'])*1.0
+        #c/a = c/b*b/a
         c_to_a = c_to_b*b_to_a
 
         mask = (table['gal_type'] == self.gal_type)
         table['galaxy_c_to_a'][mask] = c_to_a[mask]
+        table['galaxy_c_to_b'][mask] = c_to_b[mask]
 
 
 class ProjectedShape(object):
