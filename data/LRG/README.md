@@ -33,6 +33,6 @@ Indices into the NYU VAGC that select LRGs are produced by the `build_lrg_indice
 
 This project uses a variety of photometric shape measurements that are not provided in the standard VAGC file, `object_sdss_imaging.fits`.  These values must be grabbed from a large number of parameter files available [here](http://sdss.physics.nyu.edu/vagc-dr7/vagc2/sdss/parameters/) that store all of the photometric properties prodced by the standard SDSS pipeline.
 
-A description of the columns in these files is available [here](http://photo.astro.princeton.edu), whith more information from SDSS [here](https://data.sdss.org/datamodel/files/BOSS_PHOTOOBJ/RERUN/RUN/CAMCOL/photoObj.html), although it seems not all of the parameters retian the same name between the two.  
+A description of the columns in these files is available [here](http://photo.astro.princeton.edu), whith more information from SDSS [here](https://data.sdss.org/datamodel/files/BOSS_PHOTOOBJ/RERUN/RUN/CAMCOL/photoObj.html), although it seems not all of the parameters retain the same name between the two.  
 
   
