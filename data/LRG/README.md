@@ -24,9 +24,9 @@ The first four files can be downloaded using the `./download_data.sh` script.  T
 
 ## LRG Selection
 
-The LRG sample is built closely following the directions from Eyal Kazin [here](http://cosmo.nyu.edu/~eak306/SDSS-LRG.html).  The steps he takes are reproduced in the `build_lrg_indices.py` script, except for the "sector completeness" cut which uses an approximation for completeness which takes some work to reproduce.  I do not reproduce that here, and instead I only keep galaxies in sectors which are present in his catalog, given in `DR7-Full.ascii`.    
+The LRG sample is built closely following the directions from Eyal Kazin [here](http://cosmo.nyu.edu/~eak306/SDSS-LRG.html) and described in [Kazin + (2010)](http://adsabs.harvard.edu/abs/2010ApJ...710.1444K).  The steps are reproduced in the `build_lrg_indices.py` script, except for the "sector completeness" cut which uses an approximation for completeness which takes some work to reproduce.  I do not reproduce that here, and instead I only keep galaxies in sectors which are present in his catalog, given in `DR7-Full.ascii`.    
 
-Indices into the NYU VAGC that select LRGs are produced by the `build_lrg_indices.py` script.  This script creates an ascii table of 0-indexed indices, that when applied to the NYU VAGC files, produce an LRG sample.  This file is saved as `lrg_sample_indices.dat`
+Indices into the NYU VAGC that select LRGs are produced by the `build_lrg_indices.py` script.  This script creates an ascii table of 0-indexed indices, that when applied to the NYU VAGC files, produce an LRG sample.  This file is saved as `lrg_sample_indices.dat`.  There are ~100,000 galaxies in the LRG sample.
 
 
 ## Value Added LRG catalog

@@ -2,6 +2,9 @@
 ##############
 *.fits
 *.hdf5
+*.ascii
+*.dat
+*.fits
 
 # Latex #
 #########

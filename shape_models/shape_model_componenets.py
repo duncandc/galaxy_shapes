@@ -400,8 +400,6 @@ class ProjectedShape(object):
         """
 
         g = c_to_a  # gamma
-        #c_to_b = c_to_a/b_to_a
-        #g = 1.0 - c_to_b
         e = 1.0 - b_to_a  # ellipticity
 
         V = (1 - e*(2 - e)*np.sin(phi)**2)*np.cos(theta)**2 + g**2*np.sin(theta)**2
