@@ -1,6 +1,6 @@
 # LRG Data
 
-This directory creates an LRG sample using the NYU value added galaxy catalog (VAGC).  The VAGC is described [here](http://sdss.physics.nyu.edu/vagc/).
+This directory contains scripts to create an LRG sample using the NYU value added galaxy catalog (VAGC).  The VAGC is described [here](http://sdss.physics.nyu.edu/vagc/).
 
 
 ## Required Data
