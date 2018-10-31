@@ -8,6 +8,7 @@ import numpy as np
 from astropy.utils.misc import NumpyRNGContext
 from warnings import warn
 from scipy.stats import norm, lognorm, truncnorm
+from scipy.stats import beta as beta_dist
 from stat_utils import TruncLogNorm
 from halotools.utils import normalized_vectors, elementwise_dot
 from rotations.vector_utilities import angles_between_list_of_vectors
@@ -48,10 +49,92 @@ class GalaxyShapes(object):
         """
         """
 
-        param_dict = ({'shape_alpha_1_'+self.gal_type: -2.85,
-                       'shape_alpha_2_'+self.gal_type: 1.15,
-                       'shape_beta_1_'+self.gal_type: 0.41,
-                       'shape_beta_2_'+self.gal_type: 0.17})
+        param_dict = ({'shape_alpha_1_'+self.gal_type: 1.2,
+                       'shape_alpha_2_'+self.gal_type: 25,
+                       'shape_beta_1_'+self.gal_type: 10,
+                       'shape_beta_2_'+self.gal_type: 10})
+
+        param_dict = ({'shape_alpha_1_'+self.gal_type: 1.2,
+                       'shape_alpha_2_'+self.gal_type: 5,
+                       'shape_beta_1_'+self.gal_type: 10,
+                       'shape_beta_2_'+self.gal_type: 2})
+
+        self.param_dict = param_dict
+
+    def _epsilon_dist(self):
+        """
+        """
+        alpha = self.param_dict['shape_alpha_1_'+self.gal_type]
+        beta  = self.param_dict['shape_beta_1_'+self.gal_type]
+
+        d = beta_dist(alpha, beta)
+        return d
+
+    def _gamma_prime_dist(self):
+        """
+        gamma_prime = 1 - C/B
+        """
+        alpha = self.param_dict['shape_alpha_2_'+self.gal_type]
+        beta  = self.param_dict['shape_beta_2_'+self.gal_type]
+
+        d = beta_dist(alpha, beta)
+        return d
+
+    def epsilon_pdf(self, x):
+        """
+        epsilon = 1 - B/A
+        """
+
+        dist = self._epsilon_dist()
+        p =  dist.pdf(x)
+        return p
+
+    def gamma_prime_pdf(self, x):
+        """
+        gamma_prime = 1-C/B
+
+        note: this is different from gamma = C/A
+        """
+
+        dist = self._gamma_prime_dist()
+        p =  dist.pdf(x)
+        return p
+
+    def assign_b_to_a(self, **kwargs):
+        r"""
+        """
+
+        table = kwargs['table']
+        N = len(table)
+
+        dist = self._epsilon_dist()
+        epsilon = dist.rvs(size=N)
+
+        b_to_a = 1.0 - epsilon
+
+        mask = (table['gal_type'] == self.gal_type)
+        table['galaxy_b_to_a'][mask] = b_to_a[mask]
+
+
+    def assign_c_to_a(self, **kwargs):
+        r"""
+        """
+
+        table = kwargs['table']
+        N = len(table)
+
+        dist = self._gamma_prime_dist()
+        x = dist.rvs(size=N)
+
+        # gamma_prime = 1-c/b
+        # c/b = 1-gamma_prime
+        c_to_b = 1.0 - x
+        b_to_a = np.array(table['galaxy_b_to_a'])*1.0
+        c_to_a = c_to_b*b_to_a
+
+        mask = (table['gal_type'] == self.gal_type)
+        table['galaxy_c_to_a'][mask] = c_to_a[mask]
+        table['galaxy_c_to_b'][mask] = c_to_b[mask]
 
 
 

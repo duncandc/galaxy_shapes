@@ -10,7 +10,7 @@ import time
 
 def main():
 
-    
+
     # load example calibObj file
     fpath = './parameters/'
     fname = 'calibObj-004184-2.fits'
@@ -22,7 +22,7 @@ def main():
     with open(fpath + fname) as f:
         colnames = f.readlines()
     # remove whitespace characters like `\n` at the end of each line
-    colnames = [x.strip() for x in colnames] 
+    colnames = [x.strip() for x in colnames]
 
     # load object_sdss_imaging table
     fpath = './'
@@ -51,7 +51,7 @@ def main():
     photo_table = Table()
     for col in cols:
         photo_table.add_column(col)
-    
+
     start = time.time()
 
     # populate table using calibObj files
@@ -69,7 +69,7 @@ def main():
         t = Table.read(fpath + fname)
         for colname in colnames:
             photo_table[colname][i] = t[colname][row]
-    
+
     print('time to build catalog: {0} min.'.format((time.time()-start)/60.0))
 
     # save catalog
