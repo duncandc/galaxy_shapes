@@ -17,6 +17,46 @@ __all__ = ('PS08Shapes',)
 __author__ = ('Duncan Campbell',)
 
 
+class GalaxyShapes(object):
+    r"""
+    """
+
+    def __init__(self, gal_type, **kwargs):
+        r"""
+        Parameters
+        ----------
+
+        Notes
+        -----
+        """
+
+        self.gal_type = gal_type
+        self._mock_generation_calling_sequence = (['assign_b_to_a',
+                                                   'assign_c_to_a'])
+
+        self._galprop_dtypes_to_allocate = np.dtype(
+            [(str('galaxy_b_to_a'), 'f4'),
+             (str('galaxy_c_to_a'), 'f4'),
+             (str('galaxy_c_to_b'), 'f4')])
+
+        self.list_of_haloprops_needed = []
+
+        self._methods_to_inherit = ([])
+        self.set_params(**kwargs)
+
+    def set_params(self, **kwargs):
+        """
+        """
+
+        param_dict = ({'shape_alpha_1_'+self.gal_type: -2.85,
+                       'shape_alpha_2_'+self.gal_type: 1.15,
+                       'shape_beta_1_'+self.gal_type: 0.41,
+                       'shape_beta_2_'+self.gal_type: 0.17})
+
+
+
+
+
 class PS08Shapes(object):
     r"""
     Padilla & Strauss (2008) galaxy shape model, arxiv:0802.0877
@@ -32,7 +72,7 @@ class PS08Shapes(object):
     a clipped normal distribution in :math:`\gamma^{\prime}` where:
 
     .. math::
-    \gamma^{\prime} = 1 - c/b    
+    \gamma^{\prime} = 1 - c/b
     """
 
     def __init__(self, gal_type, **kwargs):
@@ -67,11 +107,11 @@ class PS08Shapes(object):
 
         Notes
         -----
-        This class models the minor axis ratio, :math:`c/a`, indirectly.  
+        This class models the minor axis ratio, :math:`c/a`, indirectly.
         Instead, :math:`c/b` is modelled.
-        
+
         Note that in PS08, :math:`\gamma` is defined to be equal to :math:`1 - c/b`
-        instead of the usual :math:`\gamma = c/a`, the minor axis ratio. 
+        instead of the usual :math:`\gamma = c/a`, the minor axis ratio.
 
         In this class, we define :math:`\gamma^{\prime}=1-c/b`, in order to
         distinguish it from :math:`\gamma = c/a`.
@@ -278,7 +318,7 @@ class PS08Shapes(object):
                 param_dict[name + '_' + self.gal_type] = kwargs[name]
 
         self.param_dict = param_dict
-    
+
     def _epsilon_dist(self):
         """
         """
@@ -293,7 +333,7 @@ class PS08Shapes(object):
         a, b = (myclip_a - loc) / scale, (myclip_b - loc) / scale
         trunc_lognorm = TruncLogNorm()
         d = trunc_lognorm(a=a, b=b, s=sigma, loc=loc, scale=scale)
-        
+
         return d
 
     def _gamma_prime_dist(self):
@@ -302,6 +342,7 @@ class PS08Shapes(object):
         """
         mu = self.param_dict['shape_gamma_'+self.gal_type]
         sigma = self.param_dict['shape_sigma_gamma_'+self.gal_type]
+
         myclip_a = 0
         myclip_b = 1.0
         a, b = (myclip_a - mu) / sigma, (myclip_b - mu) / sigma
@@ -354,7 +395,7 @@ class PS08Shapes(object):
 
         dist = self._gamma_prime_dist()
         x = dist.rvs(size=N)
-        
+
         # gamma_prime = 1-c/b
         # c/b = 1-gamma_prime
         c_to_b = 1.0 - x
@@ -409,7 +450,7 @@ class ProjectedShape(object):
     def set_los_vector(self):
         """
         """
-        
+
         if self.los_dimension == 'x':
             u_los = np.array([1.0, 0.0, 0.0])
         elif self.los_dimension == 'y':
@@ -432,7 +473,7 @@ class ProjectedShape(object):
             table = kwargs['table']
             # lookup galaxies' orientations
             minor_axis = normalized_vectors(np.vstack((table['galaxy_axisC_x'],
-                                                       table['galaxy_axisC_y'], 
+                                                       table['galaxy_axisC_y'],
                                                        table['galaxy_axisC_z'])).T)
             inter_axis = normalized_vectors(np.vstack((table['galaxy_axisB_x'],
                                                        table['galaxy_axisB_y'],
@@ -498,7 +539,7 @@ class ProjectedShape(object):
         Notes
         -----
         """
-        
+
         # gamma
         g = c_to_a
         # ellipticity
