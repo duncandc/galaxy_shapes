@@ -16,6 +16,46 @@ __all__ = ('PS08Shapes',)
 __author__ = ('Duncan Campbell',)
 
 
+class GalaxyShapes(object):
+    r"""
+    """
+
+    def __init__(self, gal_type, **kwargs):
+        r"""
+        Parameters
+        ----------
+
+        Notes
+        -----
+        """
+
+        self.gal_type = gal_type
+        self._mock_generation_calling_sequence = (['assign_b_to_a',
+                                                   'assign_c_to_a'])
+
+        self._galprop_dtypes_to_allocate = np.dtype(
+            [(str('galaxy_b_to_a'), 'f4'),
+             (str('galaxy_c_to_a'), 'f4'),
+             (str('galaxy_c_to_b'), 'f4')])
+
+        self.list_of_haloprops_needed = []
+
+        self._methods_to_inherit = ([])
+        self.set_params(**kwargs)
+
+    def set_params(self, **kwargs):
+        """
+        """
+
+        param_dict = ({'shape_alpha_1_'+self.gal_type: -2.85,
+                       'shape_alpha_2_'+self.gal_type: 1.15,
+                       'shape_beta_1_'+self.gal_type: 0.41,
+                       'shape_beta_2_'+self.gal_type: 0.17})
+
+
+
+
+
 class PS08Shapes(object):
     r"""
     Padilla & Strauss (2008) galaxy shape model, arxiv:0802.0877
@@ -247,7 +287,7 @@ class PS08Shapes(object):
 
         mu = self.param_dict['shape_gamma_'+self.gal_type]
         sigma = self.param_dict['shape_sigma_gamma_'+self.gal_type]
-        
+
         myclip_a = 0
         myclip_b = 1.0
         a, b = (myclip_a - mu) / sigma, (myclip_b - mu) / sigma
@@ -260,7 +300,7 @@ class PS08Shapes(object):
         gamma_prime = c/a
         """
 
-        
+
         p = (self.gamma_prime_pdf(1.0-x))*(self.epsilon_pdf(1.0-x))
         return p
 
@@ -304,7 +344,7 @@ class PS08Shapes(object):
         myclip_b = 1.0
         a, b = (myclip_a - mu) / sigma, (myclip_b - mu) / sigma
         x = truncnorm.rvs(loc=mu, scale=sigma, size=N, a=a, b=b)
-        
+
         #gamma_prime = 1-c/b
         #c/b = 1-gamma
         c_to_b = 1.0 - x
@@ -364,7 +404,7 @@ class ProjectedShape(object):
             raise ValueError(msg)
 
         minor_axis = normalized_vectors(np.vstack((table['galaxy_axisC_x'],
-                                                   table['galaxy_axisC_y'], 
+                                                   table['galaxy_axisC_y'],
                                                    table['galaxy_axisC_z'])).T)
         inter_axis = normalized_vectors(np.vstack((table['galaxy_axisB_x'],
                                                    table['galaxy_axisB_y'],
