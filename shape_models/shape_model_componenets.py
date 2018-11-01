@@ -14,12 +14,13 @@ from halotools.utils import normalized_vectors, elementwise_dot
 from rotations.vector_utilities import angles_between_list_of_vectors
 
 
-__all__ = ('PS08Shapes',)
+__all__ = ('EllipticalGalaxyShapes', 'DiskGalaxyShapes', 'PS08Shapes', 'ProjectedShapes')
 __author__ = ('Duncan Campbell',)
 
 
 class EllipticalGalaxyShapes(object):
     r"""
+    3D ellipsoidal model for elliptical galaxy shapes
     """
 
     def __init__(self, gal_type, **kwargs):
@@ -135,6 +136,7 @@ class EllipticalGalaxyShapes(object):
 
 class DiskGalaxyShapes(object):
     r"""
+    3D ellipsoidal model for disk galaxy shapes
     """
 
     def __init__(self, gal_type, **kwargs):
@@ -607,7 +609,7 @@ class PS08Shapes(object):
         table['galaxy_c_to_b'][mask] = c_to_b[mask]
 
 
-class ProjectedShape(object):
+class ProjectedShapes(object):
     r"""
     model for projected galaxy shapes
     """
