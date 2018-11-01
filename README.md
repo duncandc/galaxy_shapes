@@ -20,7 +20,7 @@ This project has a variety of dependenceies used in models and analysis.  These 
 Some relavent papers for this project:
 
 * [Binney (1985)](http://adsabs.harvard.edu/abs/1985MNRAS.212..767B)
-[Ryden (2003)](http://adsabs.harvard.edu/cgi-bin/bib_query?arXiv:astro-ph/0310097)
+* [Ryden (2003)](http://adsabs.harvard.edu/cgi-bin/bib_query?arXiv:astro-ph/0310097)
 * [Padilla & Strauss (2008)](http://adsabs.harvard.edu/cgi-bin/bib_query?arXiv:0802.0877)
 * [Rodríguez, Padilla, Nelson (2013)](http://adsabs.harvard.edu/cgi-bin/bib_query?arXiv:1306.3264)
 * [Singh & Mandelbaum (2015)](https://arxiv.org/abs/1510.06752)
