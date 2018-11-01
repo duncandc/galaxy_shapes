@@ -22,7 +22,7 @@ class GalaxyShapes(object):
     r"""
     """
 
-    def __init__(self, gal_type, **kwargs):
+    def __init__(self, gal_type, quiescent, **kwargs):
         r"""
         Parameters
         ----------
@@ -32,6 +32,15 @@ class GalaxyShapes(object):
         """
 
         self.gal_type = gal_type
+
+        self.masking_key = 'quiescent'
+        if quiescent:
+            self.mask_value = True
+            self.append_string = '_quiescent'
+        else:
+            self.mask_value = False
+            self.append_string = '_starforming'
+
         self._mock_generation_calling_sequence = (['assign_b_to_a',
                                                    'assign_c_to_a'])
 
@@ -49,23 +58,24 @@ class GalaxyShapes(object):
         """
         """
 
-        param_dict = ({'shape_alpha_1_'+self.gal_type: 1.2,
-                       'shape_alpha_2_'+self.gal_type: 25,
-                       'shape_beta_1_'+self.gal_type: 10,
-                       'shape_beta_2_'+self.gal_type: 10})
-
-        param_dict = ({'shape_alpha_1_'+self.gal_type: 1.2,
-                       'shape_alpha_2_'+self.gal_type: 5,
-                       'shape_beta_1_'+self.gal_type: 10,
-                       'shape_beta_2_'+self.gal_type: 2})
+        if self.mask_value==True:
+            param_dict = ({'shape_alpha_1_'+self.gal_type+self.append_string: 1.2,
+                       'shape_alpha_2_'+self.gal_type+self.append_string: 25,
+                       'shape_beta_1_'+self.gal_type+self.append_string: 10,
+                       'shape_beta_2_'+self.gal_type+self.append_string: 10})
+        else:
+            param_dict = ({'shape_alpha_1_'+self.gal_type+self.append_string: 1.2,
+                       'shape_alpha_2_'+self.gal_type+self.append_string: 5,
+                       'shape_beta_1_'+self.gal_type+self.append_string: 10,
+                       'shape_beta_2_'+self.gal_type+self.append_string: 2})
 
         self.param_dict = param_dict
 
     def _epsilon_dist(self):
         """
         """
-        alpha = self.param_dict['shape_alpha_1_'+self.gal_type]
-        beta  = self.param_dict['shape_beta_1_'+self.gal_type]
+        alpha = self.param_dict['shape_alpha_1_'+self.gal_type+self.append_string]
+        beta  = self.param_dict['shape_beta_1_'+self.gal_type+self.append_string]
 
         d = beta_dist(alpha, beta)
         return d
@@ -74,8 +84,8 @@ class GalaxyShapes(object):
         """
         gamma_prime = 1 - C/B
         """
-        alpha = self.param_dict['shape_alpha_2_'+self.gal_type]
-        beta  = self.param_dict['shape_beta_2_'+self.gal_type]
+        alpha = self.param_dict['shape_alpha_2_'+self.gal_type+self.append_string]
+        beta  = self.param_dict['shape_beta_2_'+self.gal_type+self.append_string]
 
         d = beta_dist(alpha, beta)
         return d
@@ -112,7 +122,8 @@ class GalaxyShapes(object):
 
         b_to_a = 1.0 - epsilon
 
-        mask = (table['gal_type'] == self.gal_type)
+        mask = (table['gal_type'] == self.gal_type) & (table[self.masking_key] == self.mask_value)
+        print(self.mask_value, np.sum(mask), self.masking_key)
         table['galaxy_b_to_a'][mask] = b_to_a[mask]
 
 
@@ -132,7 +143,8 @@ class GalaxyShapes(object):
         b_to_a = np.array(table['galaxy_b_to_a'])*1.0
         c_to_a = c_to_b*b_to_a
 
-        mask = (table['gal_type'] == self.gal_type)
+        mask = (table['gal_type'] == self.gal_type) & (table[self.masking_key] == self.mask_value)
+        print(self.mask_value, np.sum(mask), self.masking_key)
         table['galaxy_c_to_a'][mask] = c_to_a[mask]
         table['galaxy_c_to_b'][mask] = c_to_b[mask]
 
