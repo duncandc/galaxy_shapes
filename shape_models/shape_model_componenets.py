@@ -18,11 +18,11 @@ __all__ = ('PS08Shapes',)
 __author__ = ('Duncan Campbell',)
 
 
-class GalaxyShapes(object):
+class EllipticalGalaxyShapes(object):
     r"""
     """
 
-    def __init__(self, gal_type, quiescent, **kwargs):
+    def __init__(self, gal_type, **kwargs):
         r"""
         Parameters
         ----------
@@ -33,16 +33,8 @@ class GalaxyShapes(object):
 
         self.gal_type = gal_type
 
-        self.masking_key = 'quiescent'
-        if quiescent:
-            self.mask_value = True
-            self.append_string = '_quiescent'
-        else:
-            self.mask_value = False
-            self.append_string = '_starforming'
-
-        self._mock_generation_calling_sequence = (['assign_b_to_a',
-                                                   'assign_c_to_a'])
+        self._mock_generation_calling_sequence = (['assign_elliptical_b_to_a',
+                                                   'assign_elliptical_c_to_a'])
 
         self._galprop_dtypes_to_allocate = np.dtype(
             [(str('galaxy_b_to_a'), 'f4'),
@@ -58,24 +50,18 @@ class GalaxyShapes(object):
         """
         """
 
-        if self.mask_value==True:
-            param_dict = ({'shape_alpha_1_'+self.gal_type+self.append_string: 1.2,
-                       'shape_alpha_2_'+self.gal_type+self.append_string: 25,
-                       'shape_beta_1_'+self.gal_type+self.append_string: 10,
-                       'shape_beta_2_'+self.gal_type+self.append_string: 10})
-        else:
-            param_dict = ({'shape_alpha_1_'+self.gal_type+self.append_string: 1.2,
-                       'shape_alpha_2_'+self.gal_type+self.append_string: 5,
-                       'shape_beta_1_'+self.gal_type+self.append_string: 10,
-                       'shape_beta_2_'+self.gal_type+self.append_string: 2})
+        param_dict = ({'elliptical_shape_alpha_1_'+self.gal_type: 2,
+                       'elliptical_shape_alpha_2_'+self.gal_type: 3,
+                       'elliptical_shape_beta_1_'+self.gal_type: 10,
+                       'elliptical_shape_beta_2_'+self.gal_type: 3})
 
         self.param_dict = param_dict
 
     def _epsilon_dist(self):
         """
         """
-        alpha = self.param_dict['shape_alpha_1_'+self.gal_type+self.append_string]
-        beta  = self.param_dict['shape_beta_1_'+self.gal_type+self.append_string]
+        alpha = self.param_dict['elliptical_shape_alpha_1_'+self.gal_type]
+        beta  = self.param_dict['elliptical_shape_beta_1_'+self.gal_type]
 
         d = beta_dist(alpha, beta)
         return d
@@ -84,8 +70,8 @@ class GalaxyShapes(object):
         """
         gamma_prime = 1 - C/B
         """
-        alpha = self.param_dict['shape_alpha_2_'+self.gal_type+self.append_string]
-        beta  = self.param_dict['shape_beta_2_'+self.gal_type+self.append_string]
+        alpha = self.param_dict['elliptical_shape_alpha_2_'+self.gal_type]
+        beta  = self.param_dict['elliptical_shape_beta_2_'+self.gal_type]
 
         d = beta_dist(alpha, beta)
         return d
@@ -110,7 +96,7 @@ class GalaxyShapes(object):
         p =  dist.pdf(x)
         return p
 
-    def assign_b_to_a(self, **kwargs):
+    def assign_elliptical_b_to_a(self, **kwargs):
         r"""
         """
 
@@ -122,12 +108,11 @@ class GalaxyShapes(object):
 
         b_to_a = 1.0 - epsilon
 
-        mask = (table['gal_type'] == self.gal_type) & (table[self.masking_key] == self.mask_value)
-        print(self.mask_value, np.sum(mask), self.masking_key)
+        mask = (table['gal_type'] == self.gal_type) & (table['quiescent'])
         table['galaxy_b_to_a'][mask] = b_to_a[mask]
 
 
-    def assign_c_to_a(self, **kwargs):
+    def assign_elliptical_c_to_a(self, **kwargs):
         r"""
         """
 
@@ -143,11 +128,123 @@ class GalaxyShapes(object):
         b_to_a = np.array(table['galaxy_b_to_a'])*1.0
         c_to_a = c_to_b*b_to_a
 
-        mask = (table['gal_type'] == self.gal_type) & (table[self.masking_key] == self.mask_value)
-        print(self.mask_value, np.sum(mask), self.masking_key)
+        mask = (table['gal_type'] == self.gal_type) & (table['quiescent'])
         table['galaxy_c_to_a'][mask] = c_to_a[mask]
         table['galaxy_c_to_b'][mask] = c_to_b[mask]
 
+
+class DiskGalaxyShapes(object):
+    r"""
+    """
+
+    def __init__(self, gal_type, **kwargs):
+        r"""
+        Parameters
+        ----------
+
+        Notes
+        -----
+        """
+
+        self.gal_type = gal_type
+
+        self._mock_generation_calling_sequence = (['assign_disk_b_to_a',
+                                                   'assign_disk_c_to_a'])
+
+        self._galprop_dtypes_to_allocate = np.dtype(
+            [(str('galaxy_b_to_a'), 'f4'),
+             (str('galaxy_c_to_a'), 'f4'),
+             (str('galaxy_c_to_b'), 'f4')])
+
+        self.list_of_haloprops_needed = []
+
+        self._methods_to_inherit = ([])
+        self.set_params(**kwargs)
+
+    def set_params(self, **kwargs):
+        """
+        """
+        param_dict = ({'disk_shape_alpha_1_'+self.gal_type: 1.2,
+                       'disk_shape_alpha_2_'+self.gal_type: 25,
+                       'disk_shape_beta_1_'+self.gal_type: 10,
+                       'disk_shape_beta_2_'+self.gal_type: 10})
+
+        self.param_dict = param_dict
+
+    def _epsilon_dist(self):
+        """
+        """
+        alpha = self.param_dict['disk_shape_alpha_1_'+self.gal_type]
+        beta  = self.param_dict['disk_shape_beta_1_'+self.gal_type]
+
+        d = beta_dist(alpha, beta)
+        return d
+
+    def _gamma_prime_dist(self):
+        """
+        gamma_prime = 1 - C/B
+        """
+        alpha = self.param_dict['disk_shape_alpha_2_'+self.gal_type]
+        beta  = self.param_dict['disk_shape_beta_2_'+self.gal_type]
+
+        d = beta_dist(alpha, beta)
+        return d
+
+    def epsilon_pdf(self, x):
+        """
+        epsilon = 1 - B/A
+        """
+
+        dist = self._epsilon_dist()
+        p =  dist.pdf(x)
+        return p
+
+    def gamma_prime_pdf(self, x):
+        """
+        gamma_prime = 1-C/B
+
+        note: this is different from gamma = C/A
+        """
+
+        dist = self._gamma_prime_dist()
+        p =  dist.pdf(x)
+        return p
+
+    def assign_disk_b_to_a(self, **kwargs):
+        r"""
+        """
+
+        table = kwargs['table']
+        N = len(table)
+
+        dist = self._epsilon_dist()
+        epsilon = dist.rvs(size=N)
+
+        b_to_a = 1.0 - epsilon
+
+        mask = (table['gal_type'] == self.gal_type) & (~table['quiescent'])
+        table['galaxy_b_to_a'][mask] = b_to_a[mask]
+
+
+    def assign_disk_c_to_a(self, **kwargs):
+        r"""
+        """
+
+        table = kwargs['table']
+        N = len(table)
+
+        dist = self._gamma_prime_dist()
+        x = dist.rvs(size=N)
+
+        # gamma_prime = 1-c/b
+        # c/b = 1-gamma_prime
+        c_to_b = 1.0 - x
+        b_to_a = np.array(table['galaxy_b_to_a'])*1.0
+        c_to_a = c_to_b*b_to_a
+
+        mask = (table['gal_type'] == self.gal_type) & (~table['quiescent'])
+        table['galaxy_c_to_a'][mask] = c_to_a[mask]
+        table['galaxy_c_to_b'][mask] = c_to_b[mask]
 
 
 
