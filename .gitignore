@@ -6,6 +6,10 @@
 *.dat
 *.fits
 
+# fiugures #
+##############
+*.pdf
+
 # Latex #
 #########
 *.log
