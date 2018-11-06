@@ -14,9 +14,141 @@ from halotools.utils import normalized_vectors, elementwise_dot
 from rotations.vector_utilities import angles_between_list_of_vectors
 
 
-__all__ = ('Morphology', 'EllipticalGalaxyShapes', 'DiskGalaxyShapes',
+__all__ = ('PS08DustExtinction', 'Morphology', 
+           'EllipticalGalaxyShapes', 'DiskGalaxyShapes',
            'PS08Shapes', 'ProjectedShapes')
 __author__ = ('Duncan Campbell',)
+
+
+class PS08DustExtinction(object):
+    """
+    class to model the inclincation dependent affect of dust extinction on observed magnitude
+    """
+
+    def __init__(self, gal_type, band='r', **kwargs):
+        r"""
+        Parameters
+        ----------
+
+        """
+
+        self.gal_type = gal_type
+        self.band = band # optical band for extinction model
+
+        self._mock_generation_calling_sequence = (['assign_morphology'])
+
+        self._galprop_dtypes_to_allocate = np.dtype(
+            [(str('galaxy_deltaMag_'+str(self.band)), 'f4')])
+
+        self.list_of_haloprops_needed = []
+
+        self._methods_to_inherit = ([])
+
+        self.set_params(**kwargs)
+
+    def set_params(self, **kwargs):
+        """
+        Notes
+        -----
+        The beta distributions in this model are parameterized by a mean and variance.
+        """
+        
+        if 'sample' in kwargs.keys():
+            sample = kwargs['sample']
+        else:
+            sample = 'all'
+
+        if sample=='luminosity_sample_1':
+            param_dict = ({'E0_' + 'r_' + self.gal_type: 0.20})
+        elif sample=='luminosity_sample_2':
+            param_dict = ({'E0_' + 'r_' + self.gal_type: 0.72})
+        elif sample=='luminosity_sample_3':
+            param_dict = ({'E0_' + 'r_' + self.gal_type: 0.8})
+        elif sample=='luminosity_sample_4':
+            param_dict = ({'E0_' + 'r_' + self.gal_type: 0.72})
+        elif sample=='all':
+            param_dict = ({'E0_' + 'r_' + self.gal_type: 0.44})
+        # parameters from table 5 in PS08
+        elif sample=='color_sample_1':
+            param_dict = ({'E0_' + 'r_' + self.gal_type: 0.4})
+        elif sample=='color_sample_2':
+            param_dict = ({'E0_' + 'r_' + self.gal_type: 0.6})
+        elif sample=='color_sample_3':
+            param_dict = ({'E0_' + 'r_' + self.gal_type:0.7})
+        elif sample=='color_sample_4':
+            param_dict = ({'E0_' + 'r_' + self.gal_type: 1.0})
+        # parameters from table 6 in PS08
+        elif sample=='size_sample_1a':
+            param_dict = ({'E0_' + 'r_' + self.gal_type:0.6})
+        elif sample=='size_sample_1b':
+            param_dict = ({'E0_' + 'r_' + self.gal_type: 0.16})
+        elif sample=='size_sample_1c':
+            param_dict = ({'E0_' + 'r_' + self.gal_type: 0.16})
+        # parameters from table 7 in PS08
+        elif sample=='size_sample_2a':
+            param_dict = ({'E0_' + 'r_' + self.gal_type: 1.9})
+        elif sample=='size_sample_2b':
+            param_dict = ({'E0_' + 'r_' + self.gal_type: 0.72})
+        elif sample=='size_sample_2c':
+            param_dict = ({'E0_' + 'r_' + self.gal_type: 0.59})
+
+        self.param_dict = param_dict
+
+
+    def extinction_model(self, mag, theta, y):
+        """
+        see equation 1 in PS08
+
+        Paramaters
+        ----------
+        mag : array_like
+            un-extincted absolute magnitude
+
+        theta : array_like
+            inclination angle in radians
+
+        y : array_like
+            y = c/b
+        """
+        
+        E0 = self.param_dict['E0_'+self.band+'_'+self.gal_type]
+        result = np.zeros(len(mag)) + E0
+        
+        mask = (np.cos(theta)>y)
+        result[mask] = (1.0 + y - np.cos(theta))*E0
+
+        return result
+
+
+    def assign_deltaMag_r(self, **kwargs):
+        r"""
+        """
+
+        if 'table' in kwargs.keys():
+            table = kwargs['table']
+            N = len(table)
+            b_to_a = table['galaxy_b_to_a']
+            c_to_a = table['galaxy_c_to_a']
+            theta = table['galaxy_theta']
+        else:
+            mag = kwargs['mag']
+            theta = kwargs['theta']
+            b_to_a = kwargs['b_to_a']
+            c_to_a = kwargs['c_to_a']
+
+        #y = c/b
+        y = c_to_a/b_to_a
+
+        mask = (table['spiral']==True)
+        result = np.zeros(N)
+
+        result[mask] = self.extinction_model(mag, theta, y)
+
+        if 'table' in kwargs.keys():
+            mask = (table['gal_type'] == self.gal_type)
+            table['galaxy_deltaMag_r'][mask] = result[mask]
+        else:
+            return result
 
 
 class Morphology(object):
@@ -422,7 +554,7 @@ class PS08Shapes(object):
             elif sample=='luminosity_sample_3':
                 param_dict = ({'shape_mu_' +          self.gal_type: -2.75,
                                'shape_sigma_' +       self.gal_type: 2.60,
-                               'shape_gamma_' +       self.gal_type: 1-0.56,
+                               'shape_gamma_' +       self.gal_type: 1.0-0.56,
                                'shape_sigma_gamma_' + self.gal_type: 0.25})
             elif sample=='luminosity_sample_4':
                 param_dict = ({'shape_mu_' +          self.gal_type: -3.85,
@@ -668,12 +800,14 @@ class PS08Shapes(object):
         x = dist.rvs(size=N)
 
         c_to_a = x
+        #c_to_b = x
+        #c_to_a = c_to_b*b_to_a
 
         # force consistency, a >= b >= c
-        mask = (c_to_a > b_to_a)
-        temp = 1.0*b_to_a
-        b_to_a[mask] = c_to_a[mask]
-        c_to_a[mask] = temp[mask]
+        #mask = (c_to_a > b_to_a)
+        #temp = 1.0*b_to_a
+        #b_to_a[mask] = c_to_a[mask]
+        #c_to_a[mask] = temp[mask]
 
         c_to_b = c_to_a / b_to_a
 
