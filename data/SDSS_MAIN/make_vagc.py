@@ -64,11 +64,19 @@ def main():
     t_4['ABSMAG_i0.1'] = ABSMAG_i
     t_4['ABSMAG_z0.1'] = ABSMAG_z
 
+    # load photometry file
+    fpath = './'
+    fname = 'object_sdss_imaging.fits'
+    t_5 = Table.read(fpath + fname)
+    
+    keys_5 = ['FRACPSF']  # columns to copy into vagc
+    dts_5 = ['f4']  # dtyoe of columns
+
 
     # build table to store catalog
     N = len(idx)
-    colnames = keys_1 + keys_2 + keys_3 + keys_4
-    dts = dts_1 + dts_2 + dts_3 + dts_4
+    colnames = keys_1 + keys_2 + keys_3 + keys_4 + keys_5
+    dts = dts_1 + dts_2 + dts_3 + dts_4 + dts_5
     # first build columns to store data
     cols = []
     for i, colname in enumerate(colnames):
@@ -92,6 +100,9 @@ def main():
 
     for key in keys_4:
         catalog_table[key]=t_4[key][idx]
+
+    for key in keys_5:
+        catalog_table[key]=t_5[key][idx]
 
 
     # save catalog
