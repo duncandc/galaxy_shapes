@@ -8,7 +8,7 @@ import numpy as np
 from astropy.utils.misc import NumpyRNGContext
 from warnings import warn
 
-__all__ = ('PS08DustExtinction', 'Shao07DustExtinction')
+__all__ = ('PS08DustExtinction', 'Shao07DustExtinction', 'Unterborn08DustExtinction')
 __author__ = ('Duncan Campbell',)
 
 
@@ -144,10 +144,7 @@ class PS08DustExtinction(object):
         E0 = self.param_dict['E0_'+self.band+'_'+self.gal_type]
         result = np.zeros(len(y)) + E0
         
-        # for mostly face-on galaxies, set extinction to 0 
         mask = (np.cos(theta) > y)
-
-        # otherwise apply a non-zero extinction
         e = (1.0 + y - np.cos(theta))*E0
         result[mask] = e[mask]
 
@@ -296,5 +293,90 @@ class Shao07DustExtinction(object):
             table['deltaMag_r'][mask] = result[mask,2]
             table['deltaMag_i'][mask] = result[mask,3]
             table['deltaMag_z'][mask] = result[mask,4]
+        else:
+            return result
+
+
+class Unterborn08DustExtinction(object):
+    """
+    class to model inclincation dependent dust extinction
+    from Unterborn & Ryden (2008)
+    """
+
+    def __init__(self, gal_type='centrals', morphology='disk', **kwargs):
+        r"""
+        Parameters
+        ----------
+
+        """
+
+        self.gal_type = gal_type
+        self.morphology = morphology
+
+        self._mock_generation_calling_sequence = (['assign_extinction'])
+
+        self._galprop_dtypes_to_allocate = np.dtype(
+            [(str('deltaMag_r'), 'f4')])
+
+        self.list_of_haloprops_needed = []
+
+        self._methods_to_inherit = ([])
+
+        self.set_params(**kwargs)
+
+    def set_params(self, **kwargs):
+        """
+        """
+        
+        param_dict = ({
+                       'beta_r_' + self.gal_type: 0.92
+                       })
+        self.param_dict = param_dict
+
+
+    def extinction_model(self, q):
+        """
+        see equation 7 in Unterborn and Ryden + (2008)
+
+        Paramaters
+        ----------
+        q : array_like
+            array of observed projected axis ratio b/a
+        """
+        
+        q = np.atleast_1d(q)
+
+        beta_r = self.param_dict['beta_r_' + self.gal_type]
+        
+        N = len(q)
+        result = np.zeros((N,1))
+        result[:,0] = beta_r * np.log10(q)**2.0
+
+        return result
+
+
+    def assign_extinction(self, **kwargs):
+        r"""
+        Parameters
+        ----------
+        q : array_like
+            array of observed projected axis ratio b/a
+        """
+
+        if 'table' in kwargs.keys():
+            table = kwargs['table']
+            q = table['projected_b_to_a']
+            N = len(table)
+        else:
+            q = kwargs['q']
+            N = len(theta)
+
+        result = self.extinction_model(q)
+
+        if 'table' in kwargs.keys():
+            mask_1 = (table[self.morphology]==True)
+            mask_2 = (table['gal_type'] == self.gal_type)
+            mask = (mask_1 & mask_2)
+            table['deltaMag_r'][mask] = result[mask,0]
         else:
             return result
