@@ -24,7 +24,7 @@ class EllipticalGalaxyShapes(object):
     3D ellipsoidal model for elliptical galaxy shapes
     """
 
-    def __init__(self, gal_type, morphology_key='elliptical', **kwargs):
+    def __init__(self, gal_type='centrals', morphology_key='elliptical', **kwargs):
         r"""
         Parameters
         ----------
@@ -125,7 +125,12 @@ class EllipticalGalaxyShapes(object):
         mask_1 = (table['gal_type'] == self.gal_type)
         mask_2 = (table[self.morphology_key] == True)
         mask = (mask_1 & mask_2)
+
+        if 'galaxy_b_to_a' not in table.colnames:
+            table['galaxy_b_to_a'] = 0.0
+
         table['galaxy_b_to_a'][mask] = b_to_a[mask]
+        return table
 
 
     def assign_elliptical_c_to_a(self, **kwargs):
@@ -147,8 +152,15 @@ class EllipticalGalaxyShapes(object):
         mask_1 = (table['gal_type'] == self.gal_type)
         mask_2 = (table[self.morphology_key] == True)
         mask = (mask_1 & mask_2)
+
+        if 'galaxy_c_to_a' not in table.colnames:
+            table['galaxy_c_to_a'] = 0.0
+        if 'galaxy_c_to_b' not in table.colnames:
+            table['galaxy_c_to_b'] = 0.0
+
         table['galaxy_c_to_a'][mask] = c_to_a[mask]
         table['galaxy_c_to_b'][mask] = c_to_b[mask]
+        return table
 
 
 class DiskGalaxyShapes(object):
@@ -156,7 +168,7 @@ class DiskGalaxyShapes(object):
     3D ellipsoidal model for disk galaxy shapes
     """
 
-    def __init__(self, gal_type, morphology_key='disk', **kwargs):
+    def __init__(self, gal_type='centrals', morphology_key='disk', **kwargs):
         r"""
         Parameters
         ----------
@@ -249,7 +261,12 @@ class DiskGalaxyShapes(object):
         mask_1 = (table['gal_type'] == self.gal_type)
         mask_2 = (table[self.morphology_key] == True)
         mask = (mask_1 & mask_2)
+
+        if 'galaxy_b_to_a' not in table.colnames:
+            table['galaxy_b_to_a'] = 0.0
+
         table['galaxy_b_to_a'][mask] = b_to_a[mask]
+        return table
 
 
     def assign_disk_c_to_a(self, **kwargs):
@@ -271,8 +288,15 @@ class DiskGalaxyShapes(object):
         mask_1 = (table['gal_type'] == self.gal_type)
         mask_2 = (table[self.morphology_key] == True)
         mask = (mask_1 & mask_2)
+
+        if 'galaxy_c_to_a' not in table.colnames:
+            table['galaxy_c_to_a'] = 0.0
+        if 'galaxy_c_to_b' not in table.colnames:
+            table['galaxy_c_to_b'] = 0.0
+
         table['galaxy_c_to_a'][mask] = c_to_a[mask]
         table['galaxy_c_to_b'][mask] = c_to_b[mask]
+        return table
 
 
 
@@ -609,6 +633,7 @@ class PS08Shapes(object):
         if 'table' in kwargs.keys():
             mask = (table['gal_type'] == self.gal_type)
             table['galaxy_b_to_a'][mask] = b_to_a[mask]
+            return table
         else:
             return b_to_a
 
@@ -645,6 +670,7 @@ class PS08Shapes(object):
             table['galaxy_c_to_a'][mask] = c_to_a[mask]
             table['galaxy_b_to_a'][mask] = b_to_a[mask]
             table['galaxy_c_to_b'][mask] = c_to_b[mask]
+            return table
         else:
             return c_to_a, b_to_a, c_to_b
 
@@ -737,12 +763,21 @@ class ProjectedShapes(object):
         proj_b_to_a = self.projected_b_to_a(b_to_a, c_to_a, theta, phi)
 
         if 'table' in kwargs.keys():
+
+            if 'galaxy_projected_b_to_a' not in table.colnames:
+                table['galaxy_projected_b_to_a'] = 0.0
+            if 'galaxy_theta' not in table.colnames:
+                table['galaxy_theta'] = 0.0
+            if 'galaxy_phi' not in table.colnames:
+                table['galaxy_phi'] = 0.0
+
             # assign projected axis ratio
             mask = (table['gal_type'] == self.gal_type)
             table['galaxy_projected_b_to_a'][mask] = proj_b_to_a[mask]
             # assign galaxy orientation angles
             table['galaxy_theta'][mask] = theta[mask]
             table['galaxy_phi'][mask]   = phi[mask]
+            return table
         else:
             return proj_b_to_a, theta
 

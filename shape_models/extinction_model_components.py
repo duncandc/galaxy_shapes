@@ -185,10 +185,14 @@ class PS08DustExtinction(object):
         result = self.extinction_model(theta, y)
 
         if 'table' in kwargs.keys():
+
+            if 'deltaMag_r' not in table.colnames:
+                table['deltaMag_r'] = 0.0
+
             mask_1 = (table[self.morphology]==True)
             mask_2 = (table['gal_type'] == self.gal_type)
             mask = (mask_1 & mask_2)
-            table['galaxy_deltaMag_r'][mask] = result[mask]
+            table['deltaMag_r'][mask] = result[mask]
         else:
             return result
 
@@ -257,11 +261,11 @@ class Shao07DustExtinction(object):
         
         N = len(theta)
         result = np.zeros((N,5))
-        result[:,0] = -1.0*gamma_u * np.log10(np.cos(theta))
-        result[:,1] = -1.0*gamma_g * np.log10(np.cos(theta))
-        result[:,2] = -1.0*gamma_r * np.log10(np.cos(theta))
-        result[:,3] = -1.0*gamma_i * np.log10(np.cos(theta))
-        result[:,4] = -1.0*gamma_z * np.log10(np.cos(theta))
+        result[:,0] = -1.0*gamma_u * np.log10(np.fabs(np.cos(theta)))
+        result[:,1] = -1.0*gamma_g * np.log10(np.fabs(np.cos(theta)))
+        result[:,2] = -1.0*gamma_r * np.log10(np.fabs(np.cos(theta)))
+        result[:,3] = -1.0*gamma_i * np.log10(np.fabs(np.cos(theta)))
+        result[:,4] = -1.0*gamma_z * np.log10(np.fabs(np.cos(theta)))
 
         return result
 
@@ -285,6 +289,18 @@ class Shao07DustExtinction(object):
         result = self.extinction_model(theta)
 
         if 'table' in kwargs.keys():
+
+            if 'deltaMag_u' not in table.colnames:
+                table['deltaMag_u'] = 0.0
+            if 'deltaMag_g' not in table.colnames:
+                table['deltaMag_g'] = 0.0
+            if 'deltaMag_r' not in table.colnames:
+                table['deltaMag_r'] = 0.0
+            if 'deltaMag_i' not in table.colnames:
+                table['deltaMag_i'] = 0.0
+            if 'deltaMag_z' not in table.colnames:
+                table['deltaMag_z'] = 0.0
+
             mask_1 = (table[self.morphology]==True)
             mask_2 = (table['gal_type'] == self.gal_type)
             mask = (mask_1 & mask_2)
@@ -293,6 +309,8 @@ class Shao07DustExtinction(object):
             table['deltaMag_r'][mask] = result[mask,2]
             table['deltaMag_i'][mask] = result[mask,3]
             table['deltaMag_z'][mask] = result[mask,4]
+
+            return table
         else:
             return result
 
@@ -374,6 +392,10 @@ class Unterborn08DustExtinction(object):
         result = self.extinction_model(q)
 
         if 'table' in kwargs.keys():
+            
+            if 'deltaMag_r' not in table.colnames:
+                table['deltaMag_r'] = 0.0
+
             mask_1 = (table[self.morphology]==True)
             mask_2 = (table['gal_type'] == self.gal_type)
             mask = (mask_1 & mask_2)
