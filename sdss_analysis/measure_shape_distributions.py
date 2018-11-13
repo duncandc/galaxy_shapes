@@ -9,9 +9,10 @@ import time
 from astropy.io import ascii
 from bootstrap_frequency import bootstrap_frequency
 
+
 def main():
 
-	# load sample selection
+    # load sample selection
     from astropy.table import Table
     fpath = '../data/SDSS_Main/'
     fname = 'sdss_vagc.hdf5'
@@ -61,12 +62,12 @@ def main():
     w_5 = 1.0/(t['FGOTMAIN'][mask_5]*vmax[mask_5])
     w_6 = 1.0/(t['FGOTMAIN'][mask_6]*vmax[mask_6])
 
-    y_1, y_err_1 = bootstrap_frequency(x_1, bins, weights=w_1, Nboot=100)
-    y_2, y_err_2 = bootstrap_frequency(x_2, bins, weights=w_2, Nboot=100)
-    y_3, y_err_3 = bootstrap_frequency(x_3, bins, weights=w_3, Nboot=100)
-    y_4, y_err_4 = bootstrap_frequency(x_4, bins, weights=w_4, Nboot=100)
-    y_5, y_err_5 = bootstrap_frequency(x_5, bins, weights=w_5, Nboot=100)
-    y_6, y_err_6 = bootstrap_frequency(x_6, bins, weights=w_6, Nboot=100)
+    y_1, y_err_1 = bootstrap_frequency(x_1, bins, weights=w_1, Nboot=1000)
+    y_2, y_err_2 = bootstrap_frequency(x_2, bins, weights=w_2, Nboot=1000)
+    y_3, y_err_3 = bootstrap_frequency(x_3, bins, weights=w_3, Nboot=1000)
+    y_4, y_err_4 = bootstrap_frequency(x_4, bins, weights=w_4, Nboot=1000)
+    y_5, y_err_5 = bootstrap_frequency(x_5, bins, weights=w_5, Nboot=1000)
+    y_6, y_err_6 = bootstrap_frequency(x_6, bins, weights=w_6, Nboot=1000)
 
     fpath = './data/'
     
