@@ -21,7 +21,8 @@ def lnlike(theta, y, yerr, mag_lim):
          'elliptical_shape_mu_1_centrals': theta[4],
          'elliptical_shape_mu_2_centrals': theta[5],
          'elliptical_shape_var_1_centrals': theta[6],
-         'elliptical_shape_var_2_centrals': theta[7]}
+         'elliptical_shape_var_2_centrals': theta[7],
+         'f_disk':theta[8]}
     
     # simulate mock galaxy sample
     mock = make_galaxy_sample(mag_lim=mag_lim, size=10**5, **d)
@@ -49,6 +50,6 @@ def lnlike(theta, y, yerr, mag_lim):
     mask = (total_err_squared==0.0)
     total_err_squared[mask] = 10**(-8)
 
-    return np.sum((counts - y)**2/total_err_squared)
+    return -0.5*np.sum((counts - y)**2/total_err_squared)
 
 
