@@ -21,29 +21,30 @@ def main():
     theta0 = [0.1071, 0.8, 0.0078, 0.0056, 0.16667, 0.4, 0.01068, 0.04, 0.1]
     
     # set MCMC parameters
-    ndim, nwalkers = 8, 50
+    ndim = len(theta0)
+    nwalkers = 50
     nthreads = 2
     nsteps = 100
 
     # set magnitude limit for galaxy sample
     if   galaxy_sample == '1':
     	mag_lim = -17
-        theta0 = [0.1071, 0.8, 0.0078, 0.0056, 0.16667, 0.4, 0.01068, 0.04, 0.9]
+        theta0 = [0.1071, 0.8, 0.0078, 0.0056, 0.16667, 0.4, 0.01068, 0.04, 0.8686]
     elif galaxy_sample == '2':
     	mag_lim = -18
-        theta0 = [0.1071, 0.8, 0.0078, 0.0056, 0.16667, 0.4, 0.01068, 0.04, 0.85]
+        theta0 = [0.1071, 0.8, 0.0078, 0.0056, 0.16667, 0.4, 0.01068, 0.04, 0.8788]
     elif galaxy_sample == '3':
     	mag_lim = -19
-        theta0 = [0.1071, 0.8, 0.0078, 0.0056, 0.16667, 0.4, 0.01068, 0.04, 0.7]
+        theta0 = [0.1071, 0.8, 0.0078, 0.0056, 0.16667, 0.4, 0.01068, 0.04, 0.6713]
     elif galaxy_sample == '4':
     	mag_lim = -20
-        theta0 = [0.1071, 0.8, 0.0078, 0.0056, 0.16667, 0.4, 0.01068, 0.04, 0.6]
+        theta0 = [0.1071, 0.8, 0.0078, 0.0056, 0.16667, 0.4, 0.01068, 0.04, 0.4712]
     elif galaxy_sample == '5':
     	mag_lim = -21
-        theta0 = [0.1071, 0.8, 0.0078, 0.0056, 0.16667, 0.4, 0.01068, 0.04, 0.4]
+        theta0 = [0.1071, 0.8, 0.0078, 0.0056, 0.16667, 0.4, 0.01068, 0.04, 0.3106]
     elif galaxy_sample == '6':
     	mag_lim = -22
-        theta0 = [0.1071, 0.8, 0.0078, 0.0056, 0.16667, 0.4, 0.01068, 0.04, 0.2]
+        theta0 = [0.1071, 0.8, 0.0078, 0.0056, 0.16667, 0.4, 0.01068, 0.04, 0.2284]
 
     pos0 = [theta0 + 1e-4*np.random.randn(ndim) for i in range(nwalkers)]
     sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob, args=(t['frequency'], t['err'], mag_lim), threads=nthreads)
