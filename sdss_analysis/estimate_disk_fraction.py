@@ -66,6 +66,58 @@ def main():
     print('disk fraction in samples 1-6:')
     print(f_disk_1,f_disk_2,f_disk_3,f_disk_4,f_disk_5,f_disk_6)
 
+    f_disk = np.array([f_disk_1, f_disk_2, f_disk_3, f_disk_4, f_disk_5, f_disk_6])
+    bin_centers = [-17.5,-18.5,-19.5,-20.5,-21.5,-22.5]
+
+    #fpath = './data/'
+    #fname = 'disk_fraction.dat'
+    #ascii.write([bin_centers, f_disk], fpath+fname,
+    #            names=['mag', 'f_disk'], overwrite=True)
+
+    # bootstrap error estimate
+    Nboot = 1000
+    N = len (w)
+    inds = np.arange(0,N)
+
+    f = t['FRACPSF'][:,2]
+    m =t['ABSMAG_r0.1']
+
+    f_disk_1 = np.zeros(Nboot)
+    f_disk_2 = np.zeros(Nboot)
+    f_disk_3 = np.zeros(Nboot)
+    f_disk_4 = np.zeros(Nboot)
+    f_disk_5 = np.zeros(Nboot)
+    f_disk_6 = np.zeros(Nboot)
+    for i in range(Nboot):
+        idx = np.random.choice(inds, size=N)
+        ww = w[idx]
+        ff = f[idx]
+        mm = m[idx]
+        
+        disks = (ff < 0.8)
+
+        mask_1 = (mm > -18) & (mm <= -17)
+        mask_2 = (mm > -19) & (mm <= -18)
+        mask_3 = (mm > -20) & (mm <= -19)
+        mask_4 = (mm > -21) & (mm <= -20)
+        mask_5 = (mm > -22) & (mm <= -21)
+        mask_6 = (mm > -23) & (mm <= -22)
+
+        f_disk_1[i] = 1.0*np.sum(ww[mask_1 & disks])/np.sum(ww[mask_1])
+        f_disk_2[i] = 1.0*np.sum(ww[mask_2 & disks])/np.sum(ww[mask_2])
+        f_disk_3[i] = 1.0*np.sum(ww[mask_3 & disks])/np.sum(ww[mask_3])
+        f_disk_4[i] = 1.0*np.sum(ww[mask_4 & disks])/np.sum(ww[mask_4])
+        f_disk_5[i] = 1.0*np.sum(ww[mask_5 & disks])/np.sum(ww[mask_5])
+        f_disk_6[i] = 1.0*np.sum(ww[mask_6 & disks])/np.sum(ww[mask_6])
+
+    y = [np.mean(f_disk_1),np.mean(f_disk_2),np.mean(f_disk_3),np.mean(f_disk_4),np.mean(f_disk_5),np.mean(f_disk_6)]
+    err = [np.std(f_disk_1),np.std(f_disk_2),np.std(f_disk_3),np.std(f_disk_4),np.std(f_disk_5),np.std(f_disk_6)]
+
+    fpath = './data/'
+    fname = 'disk_fraction.dat'
+    ascii.write([bin_centers, y, err], fpath+fname,
+                names=['mag', 'f_disk', 'err'], overwrite=True)
+
 
 
 if __name__ == '__main__':
