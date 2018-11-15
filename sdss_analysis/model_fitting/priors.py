@@ -15,25 +15,25 @@ def lnprior(theta):
     disk_mu_2 = theta[1]
     disk_var_1 = theta[2]
     disk_var_2 = theta[3]
-    
+
     # elliptical parameters
     elliptical_mu_1 = theta[4]
     elliptical_mu_2 = theta[5]
     elliptical_var_1 = theta[6]
     elliptical_var_2 = theta[7]
-    
+
     # fraction of disk galaxies
     f_disk = theta[8]
-    
+
     # keep track of prior
     result = 0.0
 
     # disk fraction must be in the range [0,1]
-    if (df_disk>=0.0) & (f_disk<=1.0):
+    if (f_disk>=0.0) & (f_disk<=1.0):
         pass
     else:
         result += -np.inf
-    
+
     # mean axis ratio must be in the range [0,1]
     if (disk_mu_1>0.0) & (disk_mu_1<1.0):
         pass
@@ -45,37 +45,37 @@ def lnprior(theta):
         pass
     else:
         result += -np.inf
-    
+
     # variance must be > 0
     if (disk_var_1>0.0):
         pass
     else:
         result += -np.inf
-    
+
     # variance must be > 0
     if (disk_var_2>0.0):
         pass
     else:
         result += -np.inf
-     
-    # mean axis ratio must be in the range [0,1]   
+
+    # mean axis ratio must be in the range [0,1]
     if (elliptical_mu_1>0.0) & (elliptical_mu_1<1.0):
         pass
     else:
         result += -np.inf
-    
+
     # mean axis ratio must be in the range [0,1]
     if (elliptical_mu_2>0.0) & (elliptical_mu_2<1.0):
         pass
     else:
         result += -np.inf
-    
+
     # variance must be > 0
     if (elliptical_var_1>0.0):
         pass
     else:
         result += -np.inf
-    
+
     # variance must be > 0
     if (elliptical_var_2>0.0):
         pass

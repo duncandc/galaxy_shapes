@@ -2,7 +2,7 @@
 script to run MCMC fitting routine for shape model
 """
 
-from __future__ import print_function, division, absolute_import 
+from __future__ import print_function, division, absolute_import
 import numpy as np
 from astropy.table import Table
 import time
@@ -10,16 +10,13 @@ import emcee
 from prob import lnprob
 
 def main():
-    
+
     galaxy_sample = '4'
     t = Table.read('../data/sample_'+galaxy_sample+'_shapes.dat', format='ascii')
 
     f = open("./chains/sample_"+galaxy_sample+"_chain.dat", "w")
     f.close()
 
-    # set initial parameters
-    theta0 = [0.1071, 0.8, 0.0078, 0.0056, 0.16667, 0.4, 0.01068, 0.04, 0.1]
-    
     # set MCMC parameters
     ndim = len(theta0)
     nwalkers = 50
@@ -50,7 +47,7 @@ def main():
     sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob, args=(t['frequency'], t['err'], mag_lim), threads=nthreads)
 
     #sampler.run_mcmc(pos0, nsteps)
-    
+
     for result in sampler.sample(pos0, iterations=nsteps, storechain=False):
         position = result[0]
         f = open("./chains/sample_"+galaxy_sample+"_chain.dat", "a")
