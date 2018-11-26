@@ -64,8 +64,8 @@ class EllipticalGalaxyShapes(object):
         """
         param_dict = ({'elliptical_shape_mu_1_'+self.gal_type:  0.16667,
                        'elliptical_shape_mu_2_'+self.gal_type:  0.40000,
-                       'elliptical_shape_var_1_'+self.gal_type: 0.01068,
-                       'elliptical_shape_var_2_'+self.gal_type: 0.04000})
+                       'elliptical_shape_sigma_1_'+self.gal_type: 0.01068,
+                       'elliptical_shape_sigma_2_'+self.gal_type: 0.04000})
 
         self.param_dict = param_dict
 
@@ -73,9 +73,9 @@ class EllipticalGalaxyShapes(object):
         """
         """
         mu = self.param_dict['elliptical_shape_mu_1_'+self.gal_type]
-        var = self.param_dict['elliptical_shape_var_1_'+self.gal_type]
+        sigma = self.param_dict['elliptical_shape_sigma_1_'+self.gal_type]
 
-        alpha, beta = _beta_params(mu, var)
+        alpha, beta = _beta_params(mu, sigma**2)
 
         d = beta_dist(alpha, beta)
         return d
@@ -85,9 +85,9 @@ class EllipticalGalaxyShapes(object):
         gamma_prime = 1 - C/B
         """
         mu = self.param_dict['elliptical_shape_mu_2_'+self.gal_type]
-        var = self.param_dict['elliptical_shape_var_2_'+self.gal_type]
+        sigma = self.param_dict['elliptical_shape_sigma_2_'+self.gal_type]
 
-        alpha, beta = _beta_params(mu, var)
+        alpha, beta = _beta_params(mu, sigma**2)
 
         d = beta_dist(alpha, beta)
         return d
@@ -198,8 +198,8 @@ class DiskGalaxyShapes(object):
         """
         param_dict = ({'disk_shape_mu_1_'+self.gal_type: 0.1071,
                        'disk_shape_mu_2_'+self.gal_type: 0.800,
-                       'disk_shape_var_1_'+self.gal_type: 0.0078,
-                       'disk_shape_var_2_'+self.gal_type: 0.0056})
+                       'disk_shape_sigma_1_'+self.gal_type: 0.0078,
+                       'disk_shape_sigma_2_'+self.gal_type: 0.0056})
 
         self.param_dict = param_dict
 
@@ -207,9 +207,9 @@ class DiskGalaxyShapes(object):
         """
         """
         mu = self.param_dict['disk_shape_mu_1_'+self.gal_type]
-        var = self.param_dict['disk_shape_var_1_'+self.gal_type]
+        sigma = self.param_dict['disk_shape_sigma_1_'+self.gal_type]
 
-        alpha, beta = _beta_params(mu, var)
+        alpha, beta = _beta_params(mu, sigma**2)
 
         d = beta_dist(alpha, beta)
         return d
@@ -219,9 +219,9 @@ class DiskGalaxyShapes(object):
         gamma_prime = 1 - C/B
         """
         mu = self.param_dict['disk_shape_mu_2_'+self.gal_type]
-        var = self.param_dict['disk_shape_var_2_'+self.gal_type]
+        sigma = self.param_dict['disk_shape_sigma_2_'+self.gal_type]
 
-        alpha, beta = _beta_params(mu, var)
+        alpha, beta = _beta_params(mu, sigma**2)
 
         d = beta_dist(alpha, beta)
         return d

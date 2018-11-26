@@ -13,14 +13,14 @@ def lnprior(theta):
     # disk parameters
     disk_mu_1 = theta[0]
     disk_mu_2 = theta[1]
-    disk_var_1 = theta[2]
-    disk_var_2 = theta[3]
+    disk_var_1 = theta[2]**2
+    disk_var_2 = theta[3]**2
 
     # elliptical parameters
     elliptical_mu_1 = theta[4]
     elliptical_mu_2 = theta[5]
-    elliptical_var_1 = theta[6]
-    elliptical_var_2 = theta[7]
+    elliptical_var_1 = theta[6]**2
+    elliptical_var_2 = theta[7]**2
 
     # fraction of disk galaxies
     f_disk = theta[8]

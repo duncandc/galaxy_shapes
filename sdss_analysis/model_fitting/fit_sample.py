@@ -10,6 +10,7 @@ import emcee
 from prob import lnprob
 import sys
 from chains.chain_utils import return_final_step
+from multiprocessing import Pool, cpu_count
 
 def main():
 
@@ -45,6 +46,10 @@ def main():
         print('continuing chain.')
         # set intial position to the last complete step
         pos0 = return_final_step(chain_dir + sample + '_chain.dat', nwalkers)
+    
+    # check multiprocessing arguments
+    ncpu = cpu_count()
+    print("Using {0} CPU cores out of a possible {1}.".format(nthreads, ncpu))
 
     # load sdss measurements
     t = Table.read(params['comparison_fname'], format='ascii')
@@ -52,16 +57,17 @@ def main():
     yerr = t['err']
 
     # intialize sampler
-    sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob, args=(y, yerr, mag_lim), threads=nthreads)
+    with Pool(processes=nthreads) as pool:
+        sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob, args=(y, yerr, mag_lim),  pool=pool)
 
-    # save the progress after each step
-    for result in sampler.sample(pos0, iterations=nsteps, storechain=False):
-        position = result[0]
-        f = open(chain_dir + sample + '_chain.dat', 'a')
-        for k in range(position.shape[0]):
-            s = position[k]
-            f.write("{0:4d} {1:s}\n".format(k, " ".join(map(str,s))))
-        f.close()
+        # save the progress after each step
+        for result in sampler.sample(pos0, iterations=nsteps, storechain=False):
+            position = result[0]
+            f = open(chain_dir + sample + '_chain.dat', 'a')
+            for k in range(position.shape[0]):
+                s = position[k]
+                f.write("{0:4d} {1:s}\n".format(k, " ".join(map(str,s))))
+            f.close()
 
 
 

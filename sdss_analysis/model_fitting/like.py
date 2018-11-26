@@ -16,12 +16,12 @@ def lnlike(theta, y, yerr, mag_lim):
     # set model parameters
     d = {'disk_shape_mu_1_centrals': theta[0],
          'disk_shape_mu_2_centrals': theta[1],
-         'disk_shape_var_1_centrals': theta[2],
-         'disk_shape_var_2_centrals': theta[3],
+         'disk_shape_sigma_1_centrals': theta[2],
+         'disk_shape_sigma_2_centrals': theta[3],
          'elliptical_shape_mu_1_centrals': theta[4],
          'elliptical_shape_mu_2_centrals': theta[5],
-         'elliptical_shape_var_1_centrals': theta[6],
-         'elliptical_shape_var_2_centrals': theta[7],
+         'elliptical_shape_sigma_1_centrals': theta[6],
+         'elliptical_shape_sigma_2_centrals': theta[7],
          'f_disk':theta[8]}
     
     # simulate mock galaxy sample
