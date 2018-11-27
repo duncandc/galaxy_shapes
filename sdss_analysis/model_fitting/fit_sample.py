@@ -11,6 +11,7 @@ from prob import lnprob
 import sys
 from chains.chain_utils import return_final_step
 from multiprocessing import Pool, cpu_count
+from contextlib import closing
 
 def main():
 
@@ -33,19 +34,8 @@ def main():
     nthreads = params['nthreads']
     nsteps = params['nsteps']
 
-    # if not continuing a chain from a previous run
-    # create a new file to output chain
-    # otherwise load chain
-    if params['continue_chain'] == False:
-        f = open("./chains/"+sample+"_chain.dat", "w")
-        f.close()
-
-        # initialize walkers
-        pos0 = [params['theta0'] + params['dtheta']*np.random.randn(params['ndim']) for i in range(params['nwalkers'])]
-    else:
-        print('continuing chain.')
-        # set intial position to the last complete step
-        pos0 = return_final_step(chain_dir + sample + '_chain.dat', nwalkers)
+    # initialize walkers
+    pos0 = [params['theta0'] + params['dtheta']*np.random.randn(params['ndim']) for i in range(params['nwalkers'])]
     
     # check multiprocessing arguments
     ncpu = cpu_count()
@@ -56,20 +46,28 @@ def main():
     y = t['frequency']
     yerr = t['err']
 
-    # intialize sampler
-    with Pool(processes=nthreads) as pool:
-        sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob, args=(y, yerr, mag_lim),  pool=pool)
+    # Set up the backend
+    # Don't forget to clear it in case the file already exists
+    filename = chain_dir + sample + '_chain.hdf5'
+    backend = emcee.backends.HDFBackend(filename)
 
-        # save the progress after each step
-        for result in sampler.sample(pos0, iterations=nsteps, storechain=False):
-            position = result[0]
-            f = open(chain_dir + sample + '_chain.dat', 'a')
-            for k in range(position.shape[0]):
-                s = position[k]
-                f.write("{0:4d} {1:s}\n".format(k, " ".join(map(str,s))))
-            f.close()
+    if params['continue_chain'] == False:
+        backend.reset(nwalkers, ndim)
+    else:
+        print("Initial number of steps: {0}".format(backend.iteration))
+        # retrieve final position of chains
+        samples = backend.get_chain()
+        pos0 = samples.T[:,:,-1].T
 
+    with closing(Pool(processes=nthreads)) as pool:
+        # Initialize the sampler
+        sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob, backend=backend, args=(y, yerr, mag_lim),  pool=pool)
 
+        # Now we'll sample for up to max_n steps
+        for sample in sampler.sample(pos0, iterations=nsteps, progress=True):
+            continue
+
+    print("Final number of steps: {0}".format(backend.iteration))
 
 
 if __name__ == '__main__':
