@@ -37,6 +37,7 @@ def lnlike(theta, y, yerr, mag_lim):
     x = mock['galaxy_projected_b_to_a']
     counts = np.histogram(x[mask], bins=bins)[0]
     counts = 1.0*counts/np.sum(mask)/np.diff(bins)
+    mock = None
     
     # estimate model error
     N = np.histogram(x[mask], bins=bins)[0]

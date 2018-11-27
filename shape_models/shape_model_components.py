@@ -730,7 +730,6 @@ class ProjectedShapes(object):
         if 'table' in kwargs.keys():
             table = kwargs['table']
             N = len(table)
-            table = kwargs['table']
             # lookup galaxies' orientations
             minor_axis = normalized_vectors(np.vstack((table['galaxy_axisC_x'],
                                                        table['galaxy_axisC_y'],

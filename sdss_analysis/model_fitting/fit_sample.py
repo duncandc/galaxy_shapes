@@ -12,6 +12,8 @@ import sys
 from chains.chain_utils import return_final_step
 from multiprocessing import Pool, cpu_count
 from contextlib import closing
+import os
+os.environ["OMP_NUM_THREADS"] = "1"
 
 def main():
 
