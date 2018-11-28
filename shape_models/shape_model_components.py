@@ -806,8 +806,16 @@ class ProjectedShapes(object):
 
         Notes
         -----
+        For combinations of axis ratios and orientations that result in a sufficiently high
+        projected ellipticity, numerical errors cause the projected axis ratio to be 
+        approximated as 0.0.  
         """
 
+        b_to_a = np.atleast_1d(b_to_a)
+        c_to_a = np.atleast_1d(c_to_a)
+        theta = np.atleast_1d(theta)
+        phi = np.atleast_1d(phi)
+    
         # gamma
         g = c_to_a
         # ellipticity
@@ -816,10 +824,14 @@ class ProjectedShapes(object):
         V = (1 - e*(2 - e)*np.sin(phi)**2)*np.cos(theta)**2 + g**2*np.sin(theta)**2
         W = 4*e**2*(2-e)**2*np.cos(theta)**2*np.sin(phi)**2*np.cos(phi)**2
         Z = 1-e*(2-e)*np.cos(phi)**2
-
-        projected_b_to_a = np.sqrt((V+Z-np.sqrt((V-Z)**2+W))/(V+Z+np.sqrt((V-Z)**2+W)))
-
-        return projected_b_to_a
+    
+        # for very high ellipticity, e~1
+        # numerical errors become an issue
+        with np.errstate(invalid='ignore'):
+            projected_b_to_a = np.sqrt((V+Z-np.sqrt((V-Z)**2+W))/(V+Z+np.sqrt((V-Z)**2+W)))
+        
+        # set b_to_a to 0.0 in this case
+        return np.where(np.isnan(projected_b_to_a), 0.0, projected_b_to_a)
 
 
 def _inv_beta_params(alpha, beta):
@@ -829,8 +841,10 @@ def _inv_beta_params(alpha, beta):
     Parameters
     ----------
     alpha : float
+        beta distribution shape parameter 
 
     beta : float
+        beta distribution shape parameter 
     """
     nu = alpha + beta
     mu = alpha/nu
@@ -845,8 +859,10 @@ def _beta_params(mu, var):
     Parameters
     ----------
     mu : float
+        beta distribution mean
 
     var : float
+        beta distribution variance
     """
     nu = mu*(1.0-mu)/var - 1.0
     alpha = mu*nu
