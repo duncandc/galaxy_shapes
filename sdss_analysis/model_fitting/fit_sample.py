@@ -17,6 +17,8 @@ os.environ["OMP_NUM_THREADS"] = "1"
 
 def main():
 
+    nchunk = 25 # numnber of steps to take before reinitializing pool
+
     if len(sys.argv)>1:
         sample = sys.argv[1]
     else:
@@ -60,15 +62,40 @@ def main():
         # retrieve final position of chains
         samples = backend.get_chain()
         pos0 = samples.T[:,:,-1].T
+    
+    # run first batch of steps
+    print('starting initial pool...')
+    pool = Pool(processes=nthreads)
+    sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob, backend=backend, args=(y, yerr, mag_lim),  pool=pool)
+    if nchunk > nsteps:
+        nsteps0 = nsteps
+    sampler.run_mcmc(pos0, nsteps0, progress=True)
+    print('closing pool...')
+    pool.close()
 
-    with closing(Pool(processes=nthreads)) as pool:
-        # Initialize the sampler
+    # loop through the remaining steps
+    for i in range(1,nsteps//nchunk):
+        print('starting new pool...')
+        pool = Pool(processes=nthreads)
         sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob, backend=backend, args=(y, yerr, mag_lim),  pool=pool)
+        sampler.run_mcmc(None, nchunk, progress=True)
+        print('closing pool...')
+        pool.close()
 
-        # Now we'll sample for up to max_n steps
-        for sample in sampler.sample(pos0, iterations=nsteps, progress=True):
-            continue
-
+    # take ramaining steps
+    if nchunk > nsteps:
+        nremainder = 0.0
+    else:
+        nremainder = nsteps%nchunk
+    
+    if nremainder > 0:
+        print('starting new pool...')
+        pool = Pool(processes=nthreads)
+        sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob, backend=backend, args=(y, yerr, mag_lim),  pool=pool)
+        sampler.run_mcmc(None, nremainder, progress=True)
+        print('closing pool...')
+        pool.close()
+    
     print("Final number of steps: {0}".format(backend.iteration))
 
 
