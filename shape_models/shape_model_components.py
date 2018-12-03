@@ -62,10 +62,10 @@ class EllipticalGalaxyShapes(object):
         -----
         The beta distributions in this model are parameterized by a mean and variance.
         """
-        param_dict = ({'elliptical_shape_mu_1_'+self.gal_type:  0.16667,
-                       'elliptical_shape_mu_2_'+self.gal_type:  0.40000,
-                       'elliptical_shape_sigma_1_'+self.gal_type: 0.01068,
-                       'elliptical_shape_sigma_2_'+self.gal_type: 0.04000})
+        param_dict = ({'elliptical_shape_mu_1_'+self.gal_type:  0.1,
+                       'elliptical_shape_mu_2_'+self.gal_type:  0.35,
+                       'elliptical_shape_sigma_1_'+self.gal_type: 0.1,
+                       'elliptical_shape_sigma_2_'+self.gal_type: 0.1})
 
         self.param_dict = param_dict
 
@@ -196,10 +196,10 @@ class DiskGalaxyShapes(object):
     def set_params(self, **kwargs):
         """
         """
-        param_dict = ({'disk_shape_mu_1_'+self.gal_type: 0.1071,
-                       'disk_shape_mu_2_'+self.gal_type: 0.800,
-                       'disk_shape_sigma_1_'+self.gal_type: 0.0078,
-                       'disk_shape_sigma_2_'+self.gal_type: 0.0056})
+        param_dict = ({'disk_shape_mu_1_'+self.gal_type: 0.05,
+                       'disk_shape_mu_2_'+self.gal_type: 0.80,
+                       'disk_shape_sigma_1_'+self.gal_type: 0.05,
+                       'disk_shape_sigma_2_'+self.gal_type: 0.05})
 
         self.param_dict = param_dict
 

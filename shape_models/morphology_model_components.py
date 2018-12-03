@@ -8,7 +8,7 @@ import numpy as np
 from astropy.utils.misc import NumpyRNGContext
 from warnings import warn
 
-__all__ = ('Morphology',)
+__all__ = ('Morphology_1','Morphology_2')
 
 
 class Morphology_1(object):
@@ -81,7 +81,7 @@ class Morphology_2(object):
     def set_params(self, **kwargs):
         """
         """
-        param_dict = {'morphology_m0': -20.5,
+        param_dict = {'morphology_m0': -21.0,
                       'morphology_sigma': 1.5 }
         self.param_dict = param_dict
 
