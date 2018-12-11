@@ -20,6 +20,11 @@ The file storing the sample selection:
 
 *   `post_catalog.dr72bbright0.fits`
 
+The files storing a random sample:
+
+* `random-0.dr72bbright.fits.gz`
+
+
 These files can be downloaded using the `./download_data.sh` script.
 
 ## Sample Selection
