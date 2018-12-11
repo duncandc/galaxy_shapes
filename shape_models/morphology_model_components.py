@@ -81,7 +81,7 @@ class Morphology_2(object):
     def set_params(self, **kwargs):
         """
         """
-        param_dict = {'morphology_m0': -21.0,
+        param_dict = {'morphology_m0': -21.5,
                       'morphology_sigma': 1.5 }
         self.param_dict = param_dict
 
