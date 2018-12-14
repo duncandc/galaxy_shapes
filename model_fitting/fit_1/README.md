@@ -1,16 +1,18 @@
 # Fit \#1
 
-Here we fit a two component model (disk and elliptical-like populations) for the 3D shapes of galaxies in luminosity bins, each fit indpendently.
+Here we fit a two component model (disk and elliptical-like populations) for the 3D shapes of galaxies in luminosity bins, each bin fit independently.
 
-Some assumptions are made for these fits.  The dust extinction law for disk galaxies is assumed to be th esame for each luminosity bin.  
+Some assumptions are made for these fits.  The dust extinction law for disk galaxies is assumed to be the same for each luminosity bin.  
 
-The intrinsic luminosity function is fixed, and not allowed to vary.  The opbserved luminosity function is not used in the fits.
+The intrinsic luminosity function (prior to extinction) is fixed.  The observed luminosity function is not used in the fits.
 
-When fitting a luminosoity bin, it is assumed that all more luminious galaxies use the same shape model and disk fraction.  This is not quite right, as luminious disk galaxies can "leak" into a less lumious bin via dust extiction.  
+When fitting in a luminosoity bin, it is assumed that all more luminious galaxies use the same shape model and disk fraction.  This is not quite right, as luminous disk galaxies can "leak" into a less luminous bin via dust extiction.  
+
 
 ## Technical Details
 
 The `like.py` and `prob.py	` files store the liklihood and probability functions needed to run the MCMC.  `like.py` uses the scripts in `make_mock.py` in order to create a mock galaxy sample.  The `priors.py` file stores the priors set on the parameters of the fit.
+
 
 ## Running The Fits
 
@@ -31,6 +33,7 @@ The results/progress of the fits can be checked using the follwoing scripts:
 *  `plot_observables.py`
 
 Each of these scripts are run with a positional argument specifying the sample, e.g. `python plot_chains.py sample_4`.
+
 
 ## Analysis
 
