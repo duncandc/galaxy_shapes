@@ -1,5 +1,5 @@
 params = {
-    'continue_chain' : False,
+    'continue_chain' : True,
     'mag_lim'  : [-18.0, -19.0],
     'comparison_fname' : '../../sdss_measurements/data/sample_2_all_DEV_shapes.dat',
     'ndim'     : 9,
