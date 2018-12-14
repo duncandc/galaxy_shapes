@@ -1,1 +1,0 @@
-# SDSS Shape Measurements
