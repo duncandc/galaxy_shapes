@@ -36,22 +36,31 @@ def main():
     # add matched sizes into catalog
     t_1['r_tot'] = t_2['r_tot'][idx]
 
+    # copnvert from angle to physical size
+    from default_cosmology import cosmo
+    kpc_per_arcsec = cosmo.angular_diameter_distance(t_1['Z'])*(10**3)*(2.0*np.pi/360.0)/(60*60)
+    r = np.array(t_1['r_tot']) * kpc_per_arcsec.value
+
     disks = t_1['FRACPSF'][:,2] < 0.8
     ellipticals = t_1['FRACPSF'][:,2] >= 0.8
 
     mag_bins = np.arange(-24,-17,0.1)
     mag_bin_centers = (mag_bins[:-1]+mag_bins[1:])/2.0
     
-    mask = (~np.isnan(t_1['ABSMAG_r0.1'])) & (t_1['r_tot']>0) & (t_1['r_tot']<100) & disks
-    result_disks = stats.binned_statistic(t_1['ABSMAG_r0.1'][mask],  t_1['r_tot'][mask], 'mean', bins=mag_bins)[0]
-    err_disks = stats.binned_statistic(t_1['ABSMAG_r0.1'][mask],  np.log10(t_1['r_tot'][mask]), 'std', bins=mag_bins)[0]
+    mask = (~np.isnan(t_1['ABSMAG_r0.1'])) & (r>0) & (r<100) & disks
+    result_disks = stats.binned_statistic(t_1['ABSMAG_r0.1'][mask],  r[mask], 'mean', bins=mag_bins)[0]
+    err_disks = stats.binned_statistic(t_1['ABSMAG_r0.1'][mask],  np.log10(r[mask]), 'std', bins=mag_bins)[0]
 
-    mask = (~np.isnan(t_1['ABSMAG_r0.1'])) & (t_1['r_tot']>0) & (t_1['r_tot']<100) & ellipticals
-    result_ellipticals = stats.binned_statistic(t_1['ABSMAG_r0.1'][mask],  t_1['r_tot'][mask], 'mean', bins=mag_bins)[0]
-    err_ellipticals = stats.binned_statistic(t_1['ABSMAG_r0.1'][mask],  np.log10(t_1['r_tot'][mask]), 'std', bins=mag_bins)[0]
+    mask = (~np.isnan(t_1['ABSMAG_r0.1'])) & (r>0) & (r<100) & ellipticals
+    result_ellipticals = stats.binned_statistic(t_1['ABSMAG_r0.1'][mask],  r[mask], 'mean', bins=mag_bins)[0]
+    err_ellipticals = stats.binned_statistic(t_1['ABSMAG_r0.1'][mask],  np.log10(r[mask]), 'std', bins=mag_bins)[0]
+
+    mu = effective_surface_brightness(t_1['ABSMAG_r0.1'], r)
+    
 
     plt.figure()
-    plt.plot(t_1['ABSMAG_r0.1'],  t_1['r_tot'], '.', alpha=0.5, ms=1)
+    #plt.plot(t_1['ABSMAG_r0.1'],  t_1['r_tot'], '.', alpha=0.5, ms=1)
+    plt.scatter(t_1['ABSMAG_r0.1'],  r, marker='o', s=1, c=mu, vmax=30,vmin=20)
     plt.plot(mag_bin_centers, result_disks, 'o', color='blue')
     plt.plot(mag_bin_centers, result_disks-10**err_disks, '--', color='blue')
     plt.plot(mag_bin_centers, result_disks+10**err_disks, '--', color='blue')
@@ -61,7 +70,12 @@ def main():
     plt.xlim([-17,-23])
     plt.ylim([0.1,100])
     plt.yscale('log')
+    plt.colorbar()
     plt.show()
+
+def effective_surface_brightness(m, r):
+    return np.array(m + 2.5*np.log10(2.0*np.pi*r**2) + 36.57)
+
 
 if __name__ == '__main__':
     main()
