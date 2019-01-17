@@ -231,6 +231,7 @@ class Shen03DiskGalaxySizes(object):
     	alpha = self.param_dict['elliptical_size_alpha']
     	beta = self.param_dict['elliptical_size_beta']
     	gamma = self.param_dict['elliptical_size_gamma']
+        m0 = self.param_dict['elliptical_size_m0']
     	return 10.0**(-0.4*alpha*m + (beta-alpha)*np.log10(1.0+10.0**(-0.4*(m-m0)))+gamma)
 
     def scatter_size_model(self, m):
