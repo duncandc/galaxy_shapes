@@ -14,7 +14,7 @@ from halotools.utils import normalized_vectors, elementwise_dot
 from rotations.vector_utilities import angles_between_list_of_vectors
 
 
-__all__ = ('Shen03EllipticalGalaxySizes', 'Shen03DiskGalaxyShizes',)
+__all__ = ('Shen03EllipticalGalaxySizes', 'Shen03DiskGalaxySizes',)
 __author__ = ('Duncan Campbell',)
 
 
