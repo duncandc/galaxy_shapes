@@ -5,6 +5,8 @@
 *.ascii
 *.dat
 *.fits
+*.tgz
+*.gz
 
 # fiugures #
 ##############
