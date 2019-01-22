@@ -653,8 +653,10 @@ class PS08Shapes(object):
         dist = self._gamma_dist()
         x = dist.rvs(size=N)
 
-        c_to_a = x
+        #c_to_a = x
+        c_to_a = 1.0 - x
         #c_to_b = x
+        #c_to_b = 1.0-x
         #c_to_a = c_to_b*b_to_a
 
         # force consistency, a >= b >= c

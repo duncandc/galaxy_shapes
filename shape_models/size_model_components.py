@@ -35,6 +35,7 @@ class Shen03EllipticalGalaxySizes(object):
         self.gal_type = gal_type
         self.band = 'r'
         self.primgal_prop_key = 'Mag_'+ self.band
+        self.little_h = 0.7
 
         self._mock_generation_calling_sequence = (['assign_elliptical_size'])
 
@@ -51,6 +52,11 @@ class Shen03EllipticalGalaxySizes(object):
         set default parameters
 
         values are taken from table 1 in in Shen et al. (2003)
+
+        Notes
+        -----
+        Parameter values are for h=0.7.  
+        Returned sizes for all other class methods are re-scaled to h=1 units.
         """
 
         # set default parameters
@@ -100,7 +106,7 @@ class Shen03EllipticalGalaxySizes(object):
     	"""
     	a = self.param_dict['elliptical_size_a']
     	b = self.param_dict['elliptical_size_b']
-    	return 10.0**(-0.4*a*m + b)
+    	return 10.0**(-0.4*a*m + b)*self.little_h
 
     def scatter_size_model(self, m):
     	"""
@@ -161,6 +167,7 @@ class Shen03DiskGalaxySizes(object):
         self.gal_type = gal_type
         self.band = 'r'
         self.primgal_prop_key = 'Mag_'+ self.band
+        self.little_h = 0.7
 
         self._mock_generation_calling_sequence = (['assign_elliptical_size'])
 
@@ -177,6 +184,11 @@ class Shen03DiskGalaxySizes(object):
         set default parameters
 
         values are taken from table 1 in in Shen et al. (2003)
+
+        Notes
+        -----
+        Parameter values are for h=0.7.  
+        Returned sizes for all other class methods are re-scaled to h=1 units.
         """
 
         # set default parameters
@@ -231,7 +243,7 @@ class Shen03DiskGalaxySizes(object):
     	alpha = self.param_dict['elliptical_size_alpha']
     	beta = self.param_dict['elliptical_size_beta']
     	gamma = self.param_dict['elliptical_size_gamma']
-    	return 10.0**(-0.4*alpha*m + (beta-alpha)*np.log10(1.0+10.0**(-0.4*(m-m0)))+gamma)
+    	return 10.0**(-0.4*alpha*m + (beta-alpha)*np.log10(1.0+10.0**(-0.4*(m-m0)))+gamma)*self.little_h
 
     def scatter_size_model(self, m):
     	"""
@@ -274,3 +286,109 @@ class Shen03DiskGalaxySizes(object):
         table['galaxy_R50'] = r
         return table
 
+
+class Guo09GalaxySizes(object):
+    r"""
+    model for galaxy sizes
+    """
+
+    def __init__(self, gal_type='centrals', **kwargs):
+        r"""
+        Parameters
+        ----------
+
+        Notes
+        -----
+        """
+
+        self.gal_type = gal_type
+        self.band = 'r'
+        self.primgal_prop_key = 'Mag_'+ self.band
+        self.little_h = 1.0
+
+        self._mock_generation_calling_sequence = (['assign_elliptical_size'])
+
+        self._galprop_dtypes_to_allocate = np.dtype(
+            [(str('galaxy_R50'), 'f4')])
+
+        self.list_of_haloprops_needed = []
+
+        self._methods_to_inherit = ([])
+        self.set_params(**kwargs)
+
+    def set_params(self, **kwargs):
+        """
+        """
+
+        if self.gal_type == 'centrals':
+            if sample == 'early_type':
+                param_dict = ({'alpha':-1.04,
+                               'beta':-8.19,
+                               })
+            elif sample == 'late_type':
+                param_dict = ({'alpha':-0.81,
+                               'beta':-6.19,
+                               })
+        elif self.gal_type == 'satellites':
+            if sample == 'early_type':
+                param_dict = ({'alpha':,
+                               'beta':,
+                               })
+            if sample == 'late_type':
+                param_dict = ({'alpha':,
+                               'beta':,
+                               })
+        self.param_dict = param_dict
+
+    def median_size_model(self, m):
+        """
+        median in the size lunminosity relation
+
+        Notes
+        -----
+        see eq. 14 in Shen et al. (2003)
+        """
+        a = self.param_dict['alpha']
+        b = self.param_dict['beta']
+        return 10.0**(-0.4*a*m + b)*self.little_h
+
+    def scatter_size_model(self, m):
+        """
+        dispersion in the size lunminosity relation
+
+        Notes
+        -----
+        see eq. 16 in Shen et al. (2003)
+        """
+        s1 = self.param_dict['elliptical_size_sigma1']
+        s2 = self.param_dict['elliptical_size_sigma2']
+        m0 = self.param_dict['elliptical_size_m0']
+        return s2 + (s1 - s2)/(1.0+10.0**(-0.8*(m-m0)))
+
+    def conditional_size_pdf(self, r, m):
+        """
+        conditional probability density function
+
+        Notes
+        -----
+        see eq. 12 in Shen et al. (2003)
+        """
+        rbar = self.median_size_model(m)
+        scatter = self.scatter_size_model(m)
+        return 1.0/(r*np.sqrt(2.0*np.pi)*scatter)*np.exp(-1.0*np.log(r/rbar)**2/(2.0*scatter**2))
+
+
+    def assign_elliptical_size(self, **kwargs):
+        """
+        """
+
+        table = kwargs['table']
+        N = len(table)
+        m = table[self.primgal_prop_key]
+
+        ln_r = np.log(self.median_size_model(m))
+        ln_r = ln_r + np.random.normal(scale=self.scatter_size_model(m))
+        r = np.exp(ln_r)
+
+        table['galaxy_R50'] = r
+        return table
