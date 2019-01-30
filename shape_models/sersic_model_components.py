@@ -1,5 +1,5 @@
 r"""
-halotools style model components used to model galaxy shapes
+halotools style model components used to model galaxies with Sersic profiles
 """
 
 from __future__ import absolute_import, division, print_function, unicode_literals
@@ -9,13 +9,56 @@ from astropy.utils.misc import NumpyRNGContext
 from warnings import warn
 from scipy.special import kv, gamma
 
-__all__ = ('SersicProfile')
+__all__ = ('SersicSize', 'SersicSurfaceBrightness', 'SersicIndex')
 __author__ = ('Duncan Campbell',)
 
 
-class SersicProfile(object):
+class SersicIndex(object):
+    """
+    assign a Sersic index to galaxies
+    """
+
+    def __init__(self, gal_type, **kwargs):
+        r"""
+        Parameters
+        ----------
+
+        """
+
+        self.gal_type = gal_type
+
+        self._mock_generation_calling_sequence = (['assign_sersic_index'])
+
+        self._galprop_dtypes_to_allocate = np.dtype(
+            [(str('galaxy_sersic_index'), 'f4')])
+
+        self.list_of_haloprops_needed = []
+
+        self._methods_to_inherit = ([])
+
+    def assign_sersic_index(self, **kwargs):
+        r"""
+        """
+
+        table = kwargs['table']
+
+        # intialize key
+        table['galaxy_sersic_index'] = 0.0
+
+        # assign values for elliptical galaxies
+        mask = (table['elliptical'] == True)
+        table['galaxy_sersic_index'][mask] = 4.0
+
+        # assign values for disk galaxies
+        mask = (table['disk'] == True)
+        table['galaxy_sersic_index'][mask] = 1.0
+
+        return table
+
+
+class SersicSize(object):
     r"""
-    Sersic model galaxy profiles
+    model for sersic effective radius
     """
 
     def __init__(self, gal_type='centrals', **kwargs):
@@ -24,283 +67,165 @@ class SersicProfile(object):
 
         self.gal_type = gal_type
 
-        self._mock_generation_calling_sequence = (['assign_projected_radius',
-                                                   'assign_central_brightness'])
+        self._mock_generation_calling_sequence = (['assign_projected_radius'])
 
         self._galprop_dtypes_to_allocate = np.dtype(
-            [(str('galaxy_projected_r_half'), 'f4'),
-             (str('galaxy_central_brightness'), 'f4')])
+            [(str('galaxy_projected_re'), 'f4')])
 
         self.list_of_haloprops_needed = []
 
         self._methods_to_inherit = ([])
-    
-     def assign_projected_r_half(self, **kwargs):
+
+    def r_half_mass(self, n):
+        """
+        fitting function for projected effecive radius
+
+        Parameters
+        ----------
+        n : array_like
+            sersic index
+
+        Returns
+        -------
+        proj_to_3d_ratio : numpy.array
+            effective projected radius divided by 3d radius
+
+        Notes
+        -----
+        see eq. 21. Lima Neto + (1999)
+        """
+        nu = 1.0/n
+        a = 0.0023
+        b = 0.0293
+        c = 1.356
+
+        # ratio of r_3d/r_projected
+        f = (c- b*nu + a*nu**2)
+
+        return 1.0/f
+
+     def assign_projected_radius(self, **kwargs):
         r"""
         """
 
         table = kwargs['table']
-        N = len(table)
-        
+
         # 3D half mass radius
         r = table['galaxy_r_half']
+        # Sersic index
+        n = table['galaxy_sersic_index']
 
         # projeted half mass radius
-        R = r_effective(n, r_half=r)
+        R = self.r_half_mass(n)*r
 
-        table['galaxy_projected_r_half'][mask] = R[mask]
-
+        table['galaxy_projected_re'] = R
         return table
 
-    def assign_central_brightness(self, **kwargs):
+
+class SersicSurfaceBrightness(object):
+    r"""
+    model for sersic sruface brightness
+    """
+
+    def __init__(self, gal_type='centrals', band='r', **kwargs):
         r"""
         """
 
+        self.gal_type = gal_type
+        self.band = band
+
+        self._mock_generation_calling_sequence = (['assign_central_brightness',
+                                                   'assign_effective_brightness',
+                                                   'assign_mean_brightness'])
+
+        self._galprop_dtypes_to_allocate = np.dtype(
+            [(str('galaxy_central_brightness'), 'f4'),
+             (str('galaxy_effective_brightness'), 'f4'),
+             (str('galaxy_mean_brightness'), 'f4')])
+
+        self.list_of_haloprops_needed = []
+
+        self._methods_to_inherit = ([])
+
+
+    def assign_central_brightness(self, **kwargs):
+        """
+        absolute central surface brightness
+        """
+
         table = kwargs['table']
-        N = len(table)
-        
-        R = table['galaxy_projected_r_half']
-        M = table['galaxy_magnitude']
-        L = 10.0**(M-0.0)/(-2.5)
+
+        # Sersic index
         n = table['galaxy_sersic_index']
-        epsilon = 1.0 - table['galaxy_projected_b_to_a']
+        # effective projected radius
+        Re = table['galaxy_projected_re']
+        # projected ellipticity
+        e = table['galaxy_projected_b_to_a']
+        # galaxy magnitude
+        m = table['galaxy_Mag_'+self.band]
 
-        # calculate central intensity
-        L0 = L/(re**2 * (1-e)*(2.0*np.pi*n)/(bn(n)**(2.0*n))*gamma(2.0*n))
-        # convert to brightness in magnitudes
-        mu0 = -2.5*np.log10(L0)
+        # luminosity
+        Msun = 0.0
+        L = 10.0**((M-Msun)/(-2.5))
 
-        table['galaxy_central_brightness'][mask] = mu0[mask]
+        # central intensity
+        b = bn(n)
+        I0 = L/(Re**2*(1.0-e)*(2.0*np.pi*n)/b**(2.0*n)*gamma(2.0*n))
 
+        # central surface brightness
+        m0 = -2.5*np.log10(I0)
+
+        table['galaxy_central_brightness'] = m0
         return table
 
+    def assign_effective_brightness(self, **kwargs):
+        """
+        absolute effective surface brightness
 
+        notes
+        -----
+        see eq. 7 in Graham & Driver (2005)
+        """
 
+        table = kwargs['table']
 
-from astropy.table import Table
-import matplotlib.pyplot as plt
+        # Sersic index
+        n = table['galaxy_sersic_index']
+        # effective projected radius
+        Re = table['galaxy_projected_re']
+        # central surface brightness
+        m0 = table['galaxy_central_brightness']
 
-# fitting function, see table A1 in Trujillo et al. (2002)
-n  = [0.5,1.0,1.5,2.0,2.5,3.0,3.5,4.0,4.5,5.0,6.0,7.0,8.0,9.0,10.0]
-nu = [-0.50000,0.00000,0.43675,0.47773,0.49231,0.49316,0.49280,0.50325,
-      0.51140,0.52169,0.55823,0.58086,0.60463,0.61483,0.66995]
-p  = [1.00000,0.00000,0.61007,0.77491,0.84071,0.87689,0.89914,0.91365,
-      0.9244,0.93279,0.94451,0.95289,0.95904,0.96385,0.96731]
-h1 = [0.00000,0.00000,-0.07257,-0.04963,-0.03313,-0.02282,-0.01648,-0.01248,
-      -0.00970,-0.00773,-0.00522,-0.00369,-0.00272,-0.00206,-0.00164]
-h2 = [0.00000,0.00000,-0.20048,-0.15556,-0.12070,-0.09611,-0.07919,-0.06747,
-      -0.05829,-0.05106,-0.04060,-0.03311,-0.02768,-0.02353,-0.02053]
-h3 = [0.00000,0.00000,0.01647,0.08284,0.14390,0.19680,0.24168,0.27969,
-      0.31280,0.34181,0.39002,0.42942,0.46208,0.48997,0.51325]
-t = Table([n, nu, p, h1, h2, h3], names=('n', 'nu', 'p', 'h1', 'h2', 'h3'))
+        b = bn(n)
+        me = m0 + 2.5*b/np.log(10)
 
-# build interpolation functions for fitting parameters
-from scipy.interpolate import interp1d
-interp_h1 = interp1d(t['n'], t['h1'], kind='slinear', fill_value='extrapolate')
-interp_h2 = interp1d(t['n'], t['h2'], kind='slinear', fill_value='extrapolate')
-interp_h3 = interp1d(t['n'], t['h3'], kind='slinear', fill_value='extrapolate')
-interp_nu = interp1d(t['n'], t['nu'], kind='slinear', fill_value='extrapolate')
-interp_p  = interp1d(t['n'], t['p'],  kind='slinear', fill_value='extrapolate')
+        table['galaxy_effective_brightness'] = me
+        return table
 
+    def assign_mean_brightness(self, **kwargs):
+        """
+        absolute mean effective surface brightness
 
-def total_luminosity(n, re, b_to_a, c_to_a, theta, phi, I0=1.0):
-    """
-    total projected luminosity for an associated sersic model
+        notes
+        -----
+        see eq. 9 in Graham & Driver (2005)
+        """
 
-    Parameters
-    ----------
-    n : float
-        sersic index
+        table = kwargs['table']
 
-    re : float
-        effective radius of the projected major axis
+        # Sersic index
+        n = table['galaxy_sersic_index']
+        # effective projected radius
+        Re = table['galaxy_projected_re']
+        # central surface brightness
+        me = table['galaxy_effective_brightness']
 
-    b_to_a : float
-        intermediate-to-major 3D axis ratio
+        b = bn(n)
+        f_n = (n*np.exp(b))/(b**(2.0*n)) * gamma(2.0*n)
+        mean_me = me - 2.5*np.log10(f_n)
 
-    c_to_a : float
-        minor-to-major 3D axis ratio
-
-    theta : array_like
-        orientation angle, where cos(theta) is bounded between :math:`[0,1]`
-
-    phi : array_like
-        orientation angle, where phi is bounded between :math:`[0,2\pi]`
-
-    I0 :
-        central intensity
-
-    Returns
-    -------
-    L_tot : float
-        total luminosity
-
-    Notes
-    -----
-    see eq. 2 in Trujillo et al. (2002)
-    """
-
-    # calculate projected ellipticity
-    e = 1.0 - projected_b_to_a(b_to_a, c_to_a, theta, phi)
-
-    return I0 * re**2 * (1-e)*(2.0*np.pi*n)/(bn(n)**(2.0*n))*gamma(2.0*n)
-
-
-def projected_b_to_a(b_to_a, c_to_a, theta, phi):
-    r"""
-    Calulate the projected minor-to-major semi-axis lengths ratios
-    for the 2D projectyion of an 3D ellipsodial distributions.
-
-    Parameters
-    ----------
-    b_to_a : array_like
-        array of intermediate axis ratios, b/a
-
-    c_to_a : array_like
-        array of minor axis ratios, c/a
-
-    theta : array_like
-        orientation angle, where cos(theta) is bounded between :math:`[0,1]`
-
-    phi : array_like
-        orientation angle, where phi is bounded between :math:`[0,2\pi]`
-
-    Returns
-    -------
-    proj_b_to_a : numpy.array
-        array of projected minor-to-major axis ratios
-
-    Notes
-    -----
-    For combinations of axis ratios and orientations that result in a sufficiently high
-    projected ellipticity, numerical errors cause the projected axis ratio to be
-    approximated as 0.0.
-
-    I used the naming convention for variables employed in Ryden 2004.  I have included
-    comments to connect back to Binney (1985) and Stark (1977).
-    """
-
-    b_to_a = np.atleast_1d(b_to_a)
-    c_to_a = np.atleast_1d(c_to_a)
-    theta = np.atleast_1d(theta)
-    phi = np.atleast_1d(phi)
-
-    # gamma
-    g = c_to_a
-    # ellipticity
-    e = 1.0 - b_to_a
-
-    # called 'A'
-    V = (1 - e*(2 - e)*np.sin(phi)**2)*np.cos(theta)**2 + g**2*np.sin(theta)**2
-    # sometimes called 'B'
-    W = 4*e**2*(2-e)**2*np.cos(theta)**2*np.sin(phi)**2*np.cos(phi)**2
-    # sometimes called 'C'
-    Z = 1-e*(2-e)*np.cos(phi)**2
-
-    # for very high ellipticity, e~1
-    # numerical errors become an issue
-    with np.errstate(invalid='ignore'):
-        projected_b_to_a = np.sqrt((V+Z-np.sqrt((V-Z)**2+W))/(V+Z+np.sqrt((V-Z)**2+W)))
-
-    # set b_to_a to 0.0 in this case
-    return np.where(np.isnan(projected_b_to_a), 0.0, projected_b_to_a)
-
-
-def r_half_mass(n, re=1.0):
-    """
-    fitting function for 3D half-mass radius
-
-    Returns
-    -------
-    r : numpy.array
-        3D half mass radius
-
-    Notes
-    -----
-    see eq. 21. Lima Neto + (1999)
-    """
-    nu = 1.0/n
-    a = 0.0023
-    b = 0.0293
-    c = 1.356 
-    return (c- b*nu + a*nu**2)*re
-
-
-def r_effective(n, r_half=1.0):
-    """
-    fitting function for projecetd half-mass radius
-
-    Returns
-    -------
-    re : numpy.array
-        projected half mass radius
-    """
-    return r_half/r_half_mass(n, re=1.0)
-
-
-def I0(L, n, re, b_to_a, c_to_a, theta, phi):
-    """
-    """
-
-    # calculate projected ellipticity
-    e = 1.0 - projected_b_to_a(b_to_a, c_to_a, theta, phi)
-
-    return L/(re**2 * (1-e)*(2.0*np.pi*n)/(bn(n)**(2.0*n))*gamma(2.0*n))
-
-
-def density_profile(zeta, n, re, theta, phi, b_to_a, c_to_a, I0=1.0):
-    """
-    approximate analytical expression for the 3D density profile for a sersic model
-
-    Parameters
-    ----------
-    zeta : array_like
-        ellipsodial radius
-
-    Returns
-    -------
-
-    Notes
-    -----
-    see eq. 7 in Trujillo + (2002)
-    """
-    h = zeta/re
-    b = bn(n)
-    nu = interp_nu(n)
-    p = interp_p(n)
-
-    sqrt_f = f_geo(theta, phi, b_to_a, c_to_a)**(0.5)
-
-    return (sqrt_f * I0 * bn(n) * 2.0**((n-1)/(2.0*n)))/(re * n * np.pi) * f_h(h, n)
-
-
-def f_h(h, n):
-    """
-    dimensionless density profile
-
-    Notes
-    -----
-    scipy.special.kv is the nth-order modified Bessel function of the third kind, but the
-    scipy documention calls it the modified Bessel function of the second kind of real order v.
-    """
-    p = interp_p(n)
-    nu = interp_nu(n)
-    return (h**(p*(1.0/n - 1.0))*kv(nu, bn(n)*h**(1.0/n)))/(1.0 - C(h, n))
-
-
-def C(h, n):
-    """
-    see eq. 7
-
-    Notes
-    -----
-    I think 'log' is natural log here.
-    """
-    h1 = interp_h1(n)
-    h2 = interp_h2(n)
-    h3 = interp_h3(n)
-    return h1*np.log10(h)**2 + h2*np.log10(h) + h3
-    #return h1*np.log(h)**2 + h2*np.log(h) + h3
+        table['galaxy_mean_brightness'] = mean_me
+        return table
 
 
 def bn(n):
@@ -335,32 +260,3 @@ def bn(n):
 
     return np.where(n>0.36, result1, result2)
 
-
-def f_geo(theta, phi, b_to_a, c_to_a):
-	"""
-	geometric factor
-
-    Notes
-    -----
-    see eq. 6 in binney 1985
-	"""
-	return np.sin(theta)**2*np.cos(phi)**2 + np.sin(theta)**2*np.sin(phi)**2/b_to_a**2 + np.cos(theta)**2/c_to_a**2
-
-
-def main():
-
-    nn = np.logspace(-1,1,1000)
-    plt.figure()
-    plt.plot(nn, 1.0/r_half_mass(nn))
-    plt.xscale('log')
-    plt.xlabel('sersic index')
-    plt.ylabel(r'$r_e/r_{0.5}$')
-    plt.ylim([0,1])
-    plt.show()
-
-
-
-
-
-if __name__ == '__main__':
-    main()
