@@ -1,7 +1,84 @@
+r"""
+halotools style model components used to model galaxy shapes
+"""
+
+from __future__ import absolute_import, division, print_function, unicode_literals
+
 import numpy as np
+from astropy.utils.misc import NumpyRNGContext
+from warnings import warn
+from scipy.special import kv, gamma
+
+__all__ = ('SersicProfile')
+__author__ = ('Duncan Campbell',)
+
+
+class SersicProfile(object):
+    r"""
+    Sersic model galaxy profiles
+    """
+
+    def __init__(self, gal_type='centrals', **kwargs):
+        r"""
+        """
+
+        self.gal_type = gal_type
+
+        self._mock_generation_calling_sequence = (['assign_projected_radius',
+                                                   'assign_central_brightness'])
+
+        self._galprop_dtypes_to_allocate = np.dtype(
+            [(str('galaxy_projected_r_half'), 'f4'),
+             (str('galaxy_central_brightness'), 'f4')])
+
+        self.list_of_haloprops_needed = []
+
+        self._methods_to_inherit = ([])
+    
+     def assign_projected_r_half(self, **kwargs):
+        r"""
+        """
+
+        table = kwargs['table']
+        N = len(table)
+        
+        # 3D half mass radius
+        r = table['galaxy_r_half']
+
+        # projeted half mass radius
+        R = r_effective(n, r_half=r)
+
+        table['galaxy_projected_r_half'][mask] = R[mask]
+
+        return table
+
+    def assign_central_brightness(self, **kwargs):
+        r"""
+        """
+
+        table = kwargs['table']
+        N = len(table)
+        
+        R = table['galaxy_projected_r_half']
+        M = table['galaxy_magnitude']
+        L = 10.0**(M-0.0)/(-2.5)
+        n = table['galaxy_sersic_index']
+        epsilon = 1.0 - table['galaxy_projected_b_to_a']
+
+        # calculate central intensity
+        L0 = L/(re**2 * (1-e)*(2.0*np.pi*n)/(bn(n)**(2.0*n))*gamma(2.0*n))
+        # convert to brightness in magnitudes
+        mu0 = -2.5*np.log10(L0)
+
+        table['galaxy_central_brightness'][mask] = mu0[mask]
+
+        return table
+
+
+
+
 from astropy.table import Table
 import matplotlib.pyplot as plt
-from scipy.special import kv, gamma
 
 # fitting function, see table A1 in Trujillo et al. (2002)
 n  = [0.5,1.0,1.5,2.0,2.5,3.0,3.5,4.0,4.5,5.0,6.0,7.0,8.0,9.0,10.0]
@@ -129,6 +206,48 @@ def projected_b_to_a(b_to_a, c_to_a, theta, phi):
     return np.where(np.isnan(projected_b_to_a), 0.0, projected_b_to_a)
 
 
+def r_half_mass(n, re=1.0):
+    """
+    fitting function for 3D half-mass radius
+
+    Returns
+    -------
+    r : numpy.array
+        3D half mass radius
+
+    Notes
+    -----
+    see eq. 21. Lima Neto + (1999)
+    """
+    nu = 1.0/n
+    a = 0.0023
+    b = 0.0293
+    c = 1.356 
+    return (c- b*nu + a*nu**2)*re
+
+
+def r_effective(n, r_half=1.0):
+    """
+    fitting function for projecetd half-mass radius
+
+    Returns
+    -------
+    re : numpy.array
+        projected half mass radius
+    """
+    return r_half/r_half_mass(n, re=1.0)
+
+
+def I0(L, n, re, b_to_a, c_to_a, theta, phi):
+    """
+    """
+
+    # calculate projected ellipticity
+    e = 1.0 - projected_b_to_a(b_to_a, c_to_a, theta, phi)
+
+    return L/(re**2 * (1-e)*(2.0*np.pi*n)/(bn(n)**(2.0*n))*gamma(2.0*n))
+
+
 def density_profile(zeta, n, re, theta, phi, b_to_a, c_to_a, I0=1.0):
     """
     approximate analytical expression for the 3D density profile for a sersic model
@@ -140,6 +259,10 @@ def density_profile(zeta, n, re, theta, phi, b_to_a, c_to_a, I0=1.0):
 
     Returns
     -------
+
+    Notes
+    -----
+    see eq. 7 in Trujillo + (2002)
     """
     h = zeta/re
     b = bn(n)
@@ -226,46 +349,13 @@ def f_geo(theta, phi, b_to_a, c_to_a):
 
 def main():
 
-    import scipy.integrate as integrate
-    h_sample = np.logspace(-4,4,10000)
-    n_sample = np.arange(0.1,10.0,0.1)
-
-    colors = plt.cm.cool(np.linspace(0,1,len(n_sample)))
-
+    nn = np.logspace(-1,1,1000)
     plt.figure()
-    for i, n in enumerate(n_sample):
-        plt.plot(h_sample, f_h(h_sample, n)/f_h(1, n), color=colors[i])
-    plt.yscale('log')
-    plt.xscale('log')
-    plt.ylim([10**-15,10**5])
-    plt.xlim([10**-3,10**3])
-    plt.show()
-
-    r_half = np.zeros(len(n_sample))
-    from scipy.integrate import cumtrapz
-    for i, n in enumerate(n_sample):
-        y_int = integrate.cumtrapz(f_h(h_sample, n)*h_sample**2, x=h_sample, initial=0)
-        y_int = y_int/y_int[-1]
-        plt.plot(h_sample, y_int, color=colors[i])
-        ff = interp1d(y_int, h_sample, fill_value='extrapolate')
-        r_half[i] = ff(0.5)
-    plt.xscale('log')
-    #plt.xlim([0.0001,10])
-    plt.show()
-
-    def r_half_fitting_func(n):
-        nu = 1.0/n
-        return 1.356 - 0.0293*nu + 0.0023*nu**2
-
-    nn = np.linspace(0,10,1000)
-    plt.figure()
-    plt.plot(n_sample, r_half, '-o')
-    plt.plot(nn, r_half_fitting_func(nn))
-    plt.ylim([1.0,2.0])
-    plt.ylim([1.2,1.5])
+    plt.plot(nn, 1.0/r_half_mass(nn))
     plt.xscale('log')
     plt.xlabel('sersic index')
-    plt.ylabel(r'$\zeta_{0.5}$')
+    plt.ylabel(r'$r_e/r_{0.5}$')
+    plt.ylim([0,1])
     plt.show()
 
 
