@@ -104,7 +104,7 @@ class SersicSize(object):
 
         return 1.0/f
 
-     def assign_projected_radius(self, **kwargs):
+    def assign_projected_radius(self, **kwargs):
         r"""
         """
 
@@ -118,7 +118,9 @@ class SersicSize(object):
         # projeted half mass radius
         R = self.r_half_mass(n)*r
 
-        table['galaxy_projected_re'] = R
+        mask = (table['gal_type']==self.gal_type)
+
+        table['galaxy_projected_re'][mask] = R[mask]
         return table
 
 
@@ -157,12 +159,12 @@ class SersicSurfaceBrightness(object):
 
         # Sersic index
         n = table['galaxy_sersic_index']
-        # effective projected radius
+        # effective projected radius in kpc/h
         Re = table['galaxy_projected_re']
         # projected ellipticity
-        e = table['galaxy_projected_b_to_a']
+        e = 1.0-table['galaxy_projected_b_to_a']
         # galaxy magnitude
-        m = table['galaxy_Mag_'+self.band]
+        M = table['Mag_'+self.band]
 
         # luminosity
         Msun = 0.0
@@ -170,12 +172,14 @@ class SersicSurfaceBrightness(object):
 
         # central intensity
         b = bn(n)
+        Re = Re*1000.0  # convert to pc
         I0 = L/(Re**2*(1.0-e)*(2.0*np.pi*n)/b**(2.0*n)*gamma(2.0*n))
 
         # central surface brightness
-        m0 = -2.5*np.log10(I0)
+        m0 = -2.5*np.log10(I0) + 21.572
 
-        table['galaxy_central_brightness'] = m0
+        mask = (table['gal_type']==self.gal_type)
+        table['galaxy_central_brightness'][mask] = m0[mask]
         return table
 
     def assign_effective_brightness(self, **kwargs):
@@ -199,7 +203,8 @@ class SersicSurfaceBrightness(object):
         b = bn(n)
         me = m0 + 2.5*b/np.log(10)
 
-        table['galaxy_effective_brightness'] = me
+        mask = (table['gal_type']==self.gal_type)
+        table['galaxy_effective_brightness'][mask] = me[mask]
         return table
 
     def assign_mean_brightness(self, **kwargs):
@@ -224,7 +229,8 @@ class SersicSurfaceBrightness(object):
         f_n = (n*np.exp(b))/(b**(2.0*n)) * gamma(2.0*n)
         mean_me = me - 2.5*np.log10(f_n)
 
-        table['galaxy_mean_brightness'] = mean_me
+        mask = (table['gal_type']==self.gal_type)
+        table['galaxy_mean_brightness'][mask] = mean_me[mask]
         return table
 
 

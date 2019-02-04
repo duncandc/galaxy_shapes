@@ -72,11 +72,22 @@ def main():
     keys_5 = ['FRACPSF']  # columns to copy into vagc
     dts_5 = ['f4']  # dtyoe of columns
 
+    # load sersic file
+    fpath = './'
+    fname = 'sersic_catalog.fits'
+    t_6 = Table.read(fpath + fname)
+    keys_6=['SERSIC_N_r', 'SERSIC_R50_r']
+    dts_6 = ['f4', 'f4']  # dtyoe of columns
+    SERSIC_N_r = t_6['SERSIC_N'][:,2]
+    SERSIC_R50_r = t_6['SERSIC_R50'][:,2]
+    t_6['SERSIC_N_r'] = SERSIC_N_r
+    t_6['SERSIC_R50_r'] = SERSIC_R50_r
+
 
     # build table to store catalog
     N = len(idx)
-    colnames = keys_1 + keys_2 + keys_3 + keys_4 + keys_5
-    dts = dts_1 + dts_2 + dts_3 + dts_4 + dts_5
+    colnames = keys_1 + keys_2 + keys_3 + keys_4 + keys_5 +keys_6
+    dts = dts_1 + dts_2 + dts_3 + dts_4 + dts_5 + dts_6
     # first build columns to store data
     cols = []
     for i, colname in enumerate(colnames):
@@ -103,6 +114,9 @@ def main():
 
     for key in keys_5:
         catalog_table[key]=t_5[key][idx]
+
+    for key in keys_6:
+        catalog_table[key]=t_6[key][idx]
 
 
     # save catalog

@@ -20,6 +20,9 @@ wget http://sdss.physics.nyu.edu/vagc-dr7/vagc2/object_sdss_spectro.fits
 # galaxy shapes
 wget http://sdss.physics.nyu.edu/lss/dr72/ascii/shapes_r.dr72.dat
 
+# sersic fits
+wget http://sdss.physics.nyu.edu/vagc-dr7/vagc2/sersic/sersic_catalog.fits
+
 # k-correct magnitudes
 wget http://sdss.physics.nyu.edu/vagc-dr7/vagc2/kcorrect/kcorrect.nearest.model.z0.10.fits
 

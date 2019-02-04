@@ -14,7 +14,8 @@ The primary files needed are:
 and files storing additional parameters:
 
 *    `kcorrect.nearest.model.z0.10.fits`
-*    `shapes_r.dr72.dat`
+*    [`shapes_r.dr72.dat`](http://sdss.physics.nyu.edu/vagc/flatfiles/shapes_r.dat.html)
+*    [`sersic_catalog.fits`](http://cosmo.nyu.edu/blanton/vagc/sersic.html)
 
 The file storing the sample selection:
 
