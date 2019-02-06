@@ -41,16 +41,19 @@ def main():
     mask_0 = (t['ABSMAG_r0.1'] <= -17) & comp_mask
     mask_1 = (t['ABSMAG_r0.1'] > -18.00) & (t['ABSMAG_r0.1'] <= -17.00) & comp_mask
     mask_2 = (t['ABSMAG_r0.1'] > -19.00) & (t['ABSMAG_r0.1'] <= -18.00) & comp_mask
-    mask_3 = (t['ABSMAG_r0.1'] > -20.00) & (t['ABSMAG_r0.1'] <= -19.00) & comp_mask
-    mask_4 = (t['ABSMAG_r0.1'] > -20.25) & (t['ABSMAG_r0.1'] <= -20.00) & comp_mask
-    mask_5 = (t['ABSMAG_r0.1'] > -20.50) & (t['ABSMAG_r0.1'] <= -20.25) & comp_mask
-    mask_6 = (t['ABSMAG_r0.1'] > -20.75) & (t['ABSMAG_r0.1'] <= -20.50) & comp_mask
-    mask_7 = (t['ABSMAG_r0.1'] > -21.00) & (t['ABSMAG_r0.1'] <= -20.75) & comp_mask
-    mask_8 = (t['ABSMAG_r0.1'] > -21.25) & (t['ABSMAG_r0.1'] <= -21.00) & comp_mask
-    mask_9 = (t['ABSMAG_r0.1'] > -21.50) & (t['ABSMAG_r0.1'] <= -21.25) & comp_mask
-    mask_10 = (t['ABSMAG_r0.1'] > -21.75) & (t['ABSMAG_r0.1'] <= -21.50) & comp_mask
-    mask_11 = (t['ABSMAG_r0.1'] > -22.00) & (t['ABSMAG_r0.1'] <= -21.75) & comp_mask
-    mask_12 = (t['ABSMAG_r0.1'] > -23.00) & (t['ABSMAG_r0.1'] <= -22.00) & comp_mask
+    mask_3 = (t['ABSMAG_r0.1'] > -19.25) & (t['ABSMAG_r0.1'] <= -19.00) & comp_mask
+    mask_4 = (t['ABSMAG_r0.1'] > -19.50) & (t['ABSMAG_r0.1'] <= -19.25) & comp_mask
+    mask_5 = (t['ABSMAG_r0.1'] > -19.75) & (t['ABSMAG_r0.1'] <= -19.50) & comp_mask
+    mask_6 = (t['ABSMAG_r0.1'] > -20.00) & (t['ABSMAG_r0.1'] <= -19.75) & comp_mask
+    mask_7 = (t['ABSMAG_r0.1'] > -20.25) & (t['ABSMAG_r0.1'] <= -20.00) & comp_mask
+    mask_8 = (t['ABSMAG_r0.1'] > -20.50) & (t['ABSMAG_r0.1'] <= -20.25) & comp_mask
+    mask_9 = (t['ABSMAG_r0.1'] > -20.75) & (t['ABSMAG_r0.1'] <= -20.50) & comp_mask
+    mask_10 = (t['ABSMAG_r0.1'] > -21.00) & (t['ABSMAG_r0.1'] <= -20.75) & comp_mask
+    mask_11 = (t['ABSMAG_r0.1'] > -21.25) & (t['ABSMAG_r0.1'] <= -21.00) & comp_mask
+    mask_12 = (t['ABSMAG_r0.1'] > -21.50) & (t['ABSMAG_r0.1'] <= -21.25) & comp_mask
+    mask_13 = (t['ABSMAG_r0.1'] > -21.75) & (t['ABSMAG_r0.1'] <= -21.50) & comp_mask
+    mask_14 = (t['ABSMAG_r0.1'] > -22.00) & (t['ABSMAG_r0.1'] <= -21.75) & comp_mask
+    mask_15 = (t['ABSMAG_r0.1'] > -23.00) & (t['ABSMAG_r0.1'] <= -22.00) & comp_mask
 
     N_0 = np.sum(mask_0)
     N_1 = np.sum(mask_1)
@@ -65,8 +68,11 @@ def main():
     N_10 = np.sum(mask_10)
     N_11 = np.sum(mask_11)
     N_12 = np.sum(mask_12)
-    print('number of galaxies in samples 1-9:')
-    print(N_0, N_1, N_2, N_3, N_4, N_5, N_6, N_7, N_8, N_9, N_10, N_11, N_12)
+    N_13 = np.sum(mask_13)
+    N_14 = np.sum(mask_14)
+    N_15 = np.sum(mask_15)
+    print('number of galaxies in samples 1-15:')
+    print(N_0, N_1, N_2, N_3, N_4, N_5, N_6, N_7, N_8, N_9, N_10, N_11, N_12, N_13, N_14, N_15)
     print('total number of galaxies:')
     print(np.sum(comp_mask))
 
@@ -94,6 +100,9 @@ def main():
     x_10 = t[sersic_index_key][mask_10]
     x_11 = t[sersic_index_key][mask_11]
     x_12 = t[sersic_index_key][mask_12]
+    x_13 = t[sersic_index_key][mask_13]
+    x_14 = t[sersic_index_key][mask_14]
+    x_15 = t[sersic_index_key][mask_15]
 
     # weights
     w_0 = 1.0/(t['FGOTMAIN'][mask_0]*vmax[mask_0])
@@ -109,6 +118,9 @@ def main():
     w_10 = 1.0/(t['FGOTMAIN'][mask_10]*vmax[mask_10])
     w_11 = 1.0/(t['FGOTMAIN'][mask_11]*vmax[mask_11])
     w_12 = 1.0/(t['FGOTMAIN'][mask_12]*vmax[mask_12])
+    w_13 = 1.0/(t['FGOTMAIN'][mask_13]*vmax[mask_13])
+    w_14 = 1.0/(t['FGOTMAIN'][mask_14]*vmax[mask_14])
+    w_15 = 1.0/(t['FGOTMAIN'][mask_15]*vmax[mask_15])
 
     y_0, y_err_0 = bootstrap_frequency(x_0, bins, weights=w_0, Nboot=Nboot)
     y_1, y_err_1 = bootstrap_frequency(x_1, bins, weights=w_1, Nboot=Nboot)
@@ -123,6 +135,9 @@ def main():
     y_10, y_err_10 = bootstrap_frequency(x_10, bins, weights=w_10, Nboot=Nboot)
     y_11, y_err_11 = bootstrap_frequency(x_11, bins, weights=w_11, Nboot=Nboot)
     y_12, y_err_12 = bootstrap_frequency(x_12, bins, weights=w_12, Nboot=Nboot)
+    y_13, y_err_13 = bootstrap_frequency(x_13, bins, weights=w_13, Nboot=Nboot)
+    y_14, y_err_14 = bootstrap_frequency(x_14, bins, weights=w_14, Nboot=Nboot)
+    y_15, y_err_15 = bootstrap_frequency(x_15, bins, weights=w_15, Nboot=Nboot)
 
     plt.figure()
     plt.plot(bin_centers, y_0, '-')
@@ -138,9 +153,12 @@ def main():
     plt.errorbar(bin_centers, y_10, yerr=y_err_10, fmt='o')
     plt.errorbar(bin_centers, y_11, yerr=y_err_11, fmt='o')
     plt.errorbar(bin_centers, y_12, yerr=y_err_12, fmt='o')
+    plt.errorbar(bin_centers, y_13, yerr=y_err_13, fmt='o')
+    plt.errorbar(bin_centers, y_14, yerr=y_err_14, fmt='o')
+    plt.errorbar(bin_centers, y_15, yerr=y_err_15, fmt='o')
     plt.xscale('log')
     plt.xlim([0.35,10])
-    plt.show()
+    plt.show(block=False)
 
 
     # save measurements
@@ -192,6 +210,18 @@ def main():
 
     fname = 'sample_12_all_sersic_n.dat'
     ascii.write([bin_centers, y_12, y_err_12], fpath+fname,
+                names=['n', 'frequency', 'err'], overwrite=True)
+
+    fname = 'sample_13_all_sersic_n.dat'
+    ascii.write([bin_centers, y_13, y_err_13], fpath+fname,
+                names=['n', 'frequency', 'err'], overwrite=True)
+
+    fname = 'sample_14_all_sersic_n.dat'
+    ascii.write([bin_centers, y_14, y_err_14], fpath+fname,
+                names=['n', 'frequency', 'err'], overwrite=True)
+
+    fname = 'sample_15_all_sersic_n.dat'
+    ascii.write([bin_centers, y_15, y_err_15], fpath+fname,
                 names=['n', 'frequency', 'err'], overwrite=True)
 
 
