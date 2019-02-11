@@ -38,7 +38,7 @@ class GalaxyColor(object):
 
         self.set_params(**kwargs)
 
-    def set_params(self, params):
+    def set_params(self):
         """
         """
 
@@ -51,46 +51,46 @@ class GalaxyColor(object):
                        's2': 0.15
                        }
 
-    def lt_mean_color(self, m):
+    def lt_mean_color(self, mag):
         """
         mean of the blue distribution
         """
         m = self.params['m1']
         b = self.params['b1']
-        return m*x + b
+        return m*mag + b
 
-    def et_mean_color(self, m):
+    def et_mean_color(self, mag):
         """
         mean of the red distribution
         """
         m = self.params['m2']
         b = self.params['b2']
-        return m*x + b
+        return m*mag + b
 
-    def lt_scatter_color(self, m):
+    def lt_scatter_color(self, mag):
         """
         width of blue distribution
         """
-        return self.params['s1'] + 0.0*m
+        return self.params['s1'] + 0.0*mag
 
-    def et_scatter_color(self, m):
+    def et_scatter_color(self, mag):
         """
         width of red distribution
         """
-        return self.params['s2'] + 0.0*m
+        return self.params['s2'] + 0.0*mag
 
-    def lt_pdf_color(self, m):
+    def lt_pdf_color(self, mag):
         """
         """
-        mean_colors = self.lt_mean_color(m)
-        scatter = self.lt_scatter_color(m)
+        mean_colors = self.lt_mean_color(mag)
+        scatter = self.lt_scatter_color(mag)
         return norm.pdf(m, loc=mean_color, scale=scatter)
 
-    def et_pdf_color(self, m):
+    def et_pdf_color(self, mag):
         """
         """
-        mean_colors = self.et_mean_color(m)
-        scatter = self.et_scatter_color(m)
+        mean_colors = self.et_mean_color(mag)
+        scatter = self.et_scatter_color(mag)
         return norm.pdf(m, loc=mean_color, scale=scatter)
 
     def assign_color(self):
